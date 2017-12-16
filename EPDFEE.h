@@ -79,7 +79,7 @@ int linkusb_open(struct linkusb_dev *linkusb, int unit)
   // prepare for use with our 1-wire hardware
   linkusb_talk(linkusb, "\"r", 2, rbuf, -1); // set "iso" mode and issue the dummy 1-wire reset that seems necessary
   linkusb_talk(linkusb, "r", 1, rbuf, -1);   // another 1-wire reset & expect a good response now
-  if (strcmp(rbuf, "P"))
+  if (strcmp(rbuf, "P") && strcmp(rbuf, "\nP"))
     printf("WARNING: On linkusb_open, got unexpected 1-wire reset response: %s\n", rbuf);
 
   return 0;
@@ -179,7 +179,7 @@ int DS2413_talk_I2C(struct linkusb_dev *linkusb, uint64_t owaddr,
 
   linkusb_talk(linkusb, "r", 1, rbuf, -1); // 1-wire reset, expect "P" response
   //printf("reset: got %d chars:\n%s\n",strlen(rbuf),rbuf);
-  if (strcmp(rbuf, "P"))
+  if (strcmp(rbuf, "P") && strcmp(rbuf, "\nP"))
   {
     printf("ERROR: 1-wire reset response: %s\n", rbuf);
     return -1;
