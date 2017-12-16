@@ -124,8 +124,8 @@
 void MonitorBuilder()
 {
 
-   // main frame
-   TGMainFrame *fMainFrame2933 = new TGMainFrame(gClient->GetRoot(),10,10,kMainFrame | kVerticalFrame);
+  // main frame
+  TGMainFrame *fMainFrame2933 = new TGMainFrame(gClient->GetRoot(),10,10,kMainFrame | kVerticalFrame);
    fMainFrame2933->SetWindowName("EPD SiPM Test @ USTC");
    fMainFrame2933->SetName("fMainFrame2933");
    fMainFrame2933->SetLayoutBroken(kTRUE);
@@ -536,4 +536,71 @@ void MonitorBuilder()
    fMainFrame2933->Resize(fMainFrame2933->GetDefaultSize());
    fMainFrame2933->MapWindow();
    fMainFrame2933->Resize(324,445);
-}  
+}
+
+/*
+* EPD FEE Driver
+* TODO: Wrapped as C++ Class
+*/
+#include "EPDFEE.h"
+
+uint64_t owaddr = 0x3800000007EA673AULL; // DS2413 adapter #1 for new FEE testing
+struct linkusb_dev linkusb;
+uint64_t serial;
+int swaddr = 0; // address on the switch on this FEE (or can loop over a set of them)
+
+int CheckFEE()
+{
+  if (linkusb_open(&linkusb, 0))
+    return -1; // error messages in linkusb_open
+
+  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
+  DS28CM00_read(&linkusb, owaddr, &serial);
+  printf("FEE %d serial number: 0x%016llx\n", swaddr, serial);
+
+  EPD_disconnect_FEE(&linkusb, owaddr);
+  linkusb_close(&linkusb);
+  return 0;
+}
+
+int SetFEE(double _voltage = 55.0, double _vslope = 0.054, double _pedestal = 0.)
+{
+  // Open FEE LinkUSB Interface
+  if (linkusb_open(&linkusb, 0))
+  return -1; // error messages in linkusb_open
+  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
+  
+  //EPD quick first tests
+  for (int k = 0; k < 16; k++)
+    EPD_set_voltage(&linkusb, owaddr, k, _voltage); //hacked for offset test 7/2 put it back!!  56.5);//57);
+  EPD_set_vslope(&linkusb, owaddr, _vslope);
+  for (int k = 0; k < 16; k++)
+    EPD_set_ped(&linkusb, owaddr, k, _pedestal);
+
+  EPD_disconnect_FEE(&linkusb, owaddr);
+  linkusb_close(&linkusb);
+  return 0;
+}
+
+int TestUiCurve(double _vStart, double _vStop, double _vStep)
+{
+
+  return 0;
+}
+
+/*
+* DGTZ Driver (@cll WaveDump)
+*/
+#include "TSystem.h"
+// Controleed by TThread
+void* OpenDGTZ(void* arg){
+  gSystem->Exec("/usr/local/bin/wavedump <tmp >test");
+}
+
+int main(int argc, char* argv[])
+{
+  MonitorBuilder();
+  CheckFEE();
+  SetFEE();
+  return 0;
+}
