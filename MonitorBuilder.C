@@ -548,7 +548,9 @@ uint64_t owaddr = 0x3800000007EA673AULL; // DS2413 adapter #1 for new FEE testin
 struct linkusb_dev linkusb;
 uint64_t serial;
 int swaddr = 0; // address on the switch on this FEE (or can loop over a set of them)
+const int N_SIPM = 16;
 
+// Check FEE link status, get serial number
 int CheckFEE()
 {
   if (linkusb_open(&linkusb, 0))
@@ -563,20 +565,21 @@ int CheckFEE()
   return 0;
 }
 
-int SetFEE(double _voltage = 55.0, double _vslope = 0.054, double _pedestal = 0.)
+// FEE initial setup
+int SetFEE(double _voltage = 55.0, double _vslope = 0.054, int _pedestal = 0)
 {
   // Open FEE LinkUSB Interface
   if (linkusb_open(&linkusb, 0))
-  return -1; // error messages in linkusb_open
+    return -1; // error messages in linkusb_open
   EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
   
   //EPD quick first tests
-  for (int k = 0; k < 16; k++)
+  for (int k = 0; k < N_SIPM; k++)
     EPD_set_voltage(&linkusb, owaddr, k, _voltage); //hacked for offset test 7/2 put it back!!  56.5);//57);
   EPD_set_vslope(&linkusb, owaddr, _vslope);
-  for (int k = 0; k < 16; k++)
+  for (int k = 0; k < N_SIPM; k++)
     EPD_set_ped(&linkusb, owaddr, k, _pedestal);
-
+  // Close FEE connect
   EPD_disconnect_FEE(&linkusb, owaddr);
   linkusb_close(&linkusb);
   return 0;
@@ -584,7 +587,67 @@ int SetFEE(double _voltage = 55.0, double _vslope = 0.054, double _pedestal = 0.
 
 int TestUiCurve(double _vStart, double _vStop, double _vStep)
 {
+  const int N_VOLTAGE_PTS = (_vStop - _vStart) / _vStep;
+  double vset[N_VOLTAGE_PTS];
+  double imon[N_SIPM][N_VOLTAGE_PTS];
+  
+  // Open FEE LinkUSB Interface
+  if (linkusb_open(&linkusb, 0))
+    return -1; // error messages in linkusb_open
+  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
+  for(int i = 0; i <= N_VOLTAGE_PTS; i++)
+  {
+    vset[i]= _vStart + i * _vStep;
+    for(int ch = 0 ; ch < N_SIPM ; ch++)
+      EPD_set_voltage(&linkusb, owaddr, ch, vset[i]);
+    for(int ch = 0 ; ch < N_SIPM ; ch++)
+      imon[ch][i] = EPD_get_imon(&linkusb, owaddr, ch);
+  }
+  // Close FEE connect
+  EPD_disconnect_FEE(&linkusb, owaddr);
+  linkusb_close(&linkusb);
 
+  TMultiGraph* mg = new TMultiGraph("ui","UI Curve of SiPM");
+  TGraph *ui[N_SIPM];
+  for(int ch = 0 ; ch < N_SIPM ; ch++)
+  {
+    ui[ch] = new TGraph(N_VOLTAGE_PTS, vset, imon[ch]);
+    mg->Add(ui[ch]);
+  }
+  return 0;
+}
+
+int SetVoltage(int _vset)
+{
+  // Open FEE LinkUSB Interface
+  if (linkusb_open(&linkusb, 0))
+    return -1; // error messages in linkusb_open
+  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
+  for(int ch = 0 ; ch < N_SIPM ; ch++)
+      EPD_set_voltage(&linkusb, owaddr, ch, _vset);
+  // Close FEE connect
+  EPD_disconnect_FEE(&linkusb, owaddr);
+  linkusb_close(&linkusb);  
+  return 0;
+}
+
+int SetDAC(int _pedestal)
+{
+  // Open FEE LinkUSB Interface
+  if (linkusb_open(&linkusb, 0))
+    return -1; // error messages in linkusb_open
+  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
+  for(int ch = 0 ; ch < N_SIPM ; ch++)
+      EPD_set_ped(&linkusb, owaddr, ch, _pedestal);
+  // Close FEE connect
+  EPD_disconnect_FEE(&linkusb, owaddr);
+  linkusb_close(&linkusb);  
+  return 0;
+}
+
+int TestDAC()
+{
+  // set pedestal & read DGTZ?
   return 0;
 }
 
@@ -621,11 +684,24 @@ int ReadDGTZ(const char* _PATH=".", int _samplingSec = 5000){
   th->Delete();th = NULL;
   return 0;
 }
+int CheckDGTZ(){
+  gSystem->Exec("echo q >tmp");
+  TString model =
+    gSystem->GetFromPipe("/usr/local/bin/wavedump <tmp;sed -n 's/model\\ \\(.*\\)/\\1/p'");
+  // STATUS
+  if(model.Length() < 1)
+    cout << "[X] STATUS - DGTZ Not Connected!" << endl;
+  else
+    cout << "[-] STATUS - DGTZ Model : " << model << endl;
+
+  return 0;
+}
 
 int main(int argc, char* argv[])
 {
   MonitorBuilder();
   CheckFEE();
   SetFEE();
+  CheckDGTZ();
   return 0;
 }
