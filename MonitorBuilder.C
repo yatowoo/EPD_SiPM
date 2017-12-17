@@ -589,12 +589,37 @@ int TestUiCurve(double _vStart, double _vStop, double _vStep)
 }
 
 /*
-* DGTZ Driver (@cll WaveDump)
+* DGTZ Manager (@call WaveDump)
+* TODO : ADD log output/print
 */
 #include "TSystem.h"
-// Controleed by TThread
-void* OpenDGTZ(void* arg){
-  gSystem->Exec("/usr/local/bin/wavedump <tmp >test");
+#include "TThread.h"
+// Controlled by TThread
+//  [TODO] Implemented with CAEN DGTZ/WaveDump Library
+void* OpenDGTZ(void* _PATH){
+  char cmd[256] = "";
+  sprintf(cmd,"%s%s%s",
+    "cd ", (const char*)_PATH,
+    ";/usr/local/bin/wavedump <$OLDPWD/tmp;");
+  TString log = gSystem->GetFromPipe(cmd);
+  // DEBUG
+  cout << log << endl;
+  return NULL;
+}
+int ReadDGTZ(const char* _PATH=".", int _samplingSec = 5000){
+  const int BUUFFER_TIME = 2000; // Prepare buffer data for writing
+  TThread* th = new TThread("dgtz",OpenDGTZ);
+  gSystem->Exec("echo >tmp");
+  th->Run((void*)_PATH);
+  gSystem->Exec("echo s >>tmp"); // Start acquisition
+  gSystem->Sleep(BUUFFER_TIME); // milliSec
+  gSystem->Exec("echo W >>tmp");  // Start continuous writing
+  gSystem->Sleep(_samplingSec); // milliSec
+  gSystem->Exec("echo s >>tmp");  // Stop acquisitio
+  gSystem->Exec("echo q >>tmp");  // Quit
+  th->Kill();
+  th->Delete();th = NULL;
+  return 0;
 }
 
 int main(int argc, char* argv[])
