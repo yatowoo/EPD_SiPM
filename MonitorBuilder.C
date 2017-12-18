@@ -349,6 +349,8 @@ void MonitorBuilder()
    fgButtonUI->Resize(80,22);
    fVerticalFrame1410->AddFrame(fgButtonUI, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgButtonUI->MoveResize(4,27,80,22);
+   fgButtonUI->SetCommand("TestUICurve()");
+
    fgButtonProduce = new TGTextButton(fVerticalFrame1410,"Produce",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
    fgButtonProduce->SetTextJustify(36);
    fgButtonProduce->SetMargins(0,0,0,0);
@@ -458,6 +460,7 @@ void MonitorBuilder()
    fgButtonSave->ChangeBackground(ucolor);
    fVerticalFrame2090->AddFrame(fgButtonSave, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
    fgButtonSave->MoveResize(2,55,320,22);
+   fgButtonSave->SetCommand("DoSave()");
 
 // Render MainFrame
    fgMainFrame->AddFrame(fVerticalFrame2090, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
@@ -524,40 +527,6 @@ int SetFEE(double _voltage = 55.0, double _vslope = 0.054, int _pedestal = 0)
   return 0;
 }
 
-#include "TMultiGraph.h"
-#include "TGraph.h"
-int TestUiCurve(double _vStart, double _vStop, double _vStep)
-{
-  const int N_VOLTAGE_PTS = (_vStop - _vStart) / _vStep;
-  double vset[N_VOLTAGE_PTS];
-  double imon[N_SIPM][N_VOLTAGE_PTS];
-  
-  // Open FEE LinkUSB Interface
-  if (linkusb_open(&linkusb, 0))
-    return -1; // error messages in linkusb_open
-  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
-  for(int i = 0; i <= N_VOLTAGE_PTS; i++)
-  {
-    vset[i]= _vStart + i * _vStep;
-    for(int ch = 0 ; ch < N_SIPM ; ch++)
-      EPD_set_voltage(&linkusb, owaddr, ch, vset[i]);
-    for(int ch = 0 ; ch < N_SIPM ; ch++)
-      imon[ch][i] = EPD_get_imon(&linkusb, owaddr, ch);
-  }
-  // Close FEE connect
-  EPD_disconnect_FEE(&linkusb, owaddr);
-  linkusb_close(&linkusb);
-
-  TMultiGraph* mg = new TMultiGraph("ui","UI Curve of SiPM");
-  TGraph *ui[N_SIPM];
-  for(int ch = 0 ; ch < N_SIPM ; ch++)
-  {
-    ui[ch] = new TGraph(N_VOLTAGE_PTS, vset, imon[ch]);
-    mg->Add(ui[ch]);
-  }
-  return 0;
-}
-
 int SetVoltage(double _vset)
 {
   // LOG
@@ -589,12 +558,6 @@ int SetDAC(int _pedestal)
   // Close FEE connect
   EPD_disconnect_FEE(&linkusb, owaddr);
   linkusb_close(&linkusb);  
-  return 0;
-}
-
-int TestDAC()
-{
-  // set pedestal & read DGTZ?
   return 0;
 }
 
@@ -652,6 +615,59 @@ TString CheckDGTZ(){
 /** 
  * GUI Actions
  */
+const double VSET_MAX = 63;
+const double VSTEP_MIN = 0.01;
+bool CheckUICurveParams(double _vStart, double _vStop, double _vStep)
+{
+  return (
+    (_vStart < _vStop) && (_vStop < VSET_MAX) && (_vStep >= VSTEP_MIN)
+  );
+}
+#include "TMultiGraph.h"
+#include "TGraph.h"
+TMultiGraph* mg = NULL;
+int TestUICurve()
+{
+  double _vStart = fgNumUIVstart->GetNumber();
+  double _vStop = fgNumUIVstop->GetNumber();
+  double _vStep = fgNumUIVstep->GetNumber();
+  if(!CheckUICurveParams(_vStart,_vStop,_vStep)){
+    cout << "[-] Test - UI Curve - Invalid input params." << endl;
+    return -1;
+  }
+
+  const int N_VOLTAGE_PTS = (_vStop - _vStart) / _vStep;
+  double vset[N_VOLTAGE_PTS];
+  double imon[N_SIPM][N_VOLTAGE_PTS];
+  
+  // Open FEE LinkUSB Interface
+  if (linkusb_open(&linkusb, 0))
+    return -1; // error messages in linkusb_open
+  EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
+  for(int i = 0; i <= N_VOLTAGE_PTS; i++)
+  {
+    vset[i]= _vStart + i * _vStep;
+    for(int ch = 0 ; ch < N_SIPM ; ch++)
+      EPD_set_voltage(&linkusb, owaddr, ch, vset[i]);
+    for(int ch = 0 ; ch < N_SIPM ; ch++){
+      imon[ch][i] = EPD_get_imon(&linkusb, owaddr, ch);
+      cout << "[-] Test - UI Curve - Channel " << ch << " current = " << imon[ch][i] << endl;
+    }
+  }
+  // Close FEE connect
+  EPD_disconnect_FEE(&linkusb, owaddr);
+  linkusb_close(&linkusb);
+
+  mg = new TMultiGraph("ui","UI Curve of SiPM");
+  TGraph *ui[N_SIPM];
+  for(int ch = 0 ; ch < N_SIPM ; ch++)
+  {
+    ui[ch] = new TGraph(N_VOLTAGE_PTS, vset, imon[ch]);
+    mg->Add(ui[ch]);
+  }
+  return 0;
+}
+
 void DoCheck()
 {
   char FEENo[256];
@@ -694,7 +710,14 @@ void DoStart()
   }
 }
 void DoSave()
-{}
+{
+  char path[256];
+  sprintf(path,"%s/%s/%s",fgTextPath->GetText(),fgTextTestID->GetText(),"UICurve.root");
+  if(mg)
+    mg->SaveAs(path);
+  else
+    cout << "[X] WARNNING - No data." << endl;
+}
 
 int main(int argc, char* argv[])
 {
