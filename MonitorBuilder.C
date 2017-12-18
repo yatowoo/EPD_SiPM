@@ -585,6 +585,8 @@ int SetFEE(double _voltage = 55.0, double _vslope = 0.054, int _pedestal = 0)
   return 0;
 }
 
+#include "TMultiGraph.h"
+#include "TGraph.h"
 int TestUiCurve(double _vStart, double _vStop, double _vStep)
 {
   const int N_VOLTAGE_PTS = (_vStop - _vStart) / _vStep;
@@ -687,7 +689,7 @@ int ReadDGTZ(const char* _PATH=".", int _samplingSec = 5000){
 int CheckDGTZ(){
   gSystem->Exec("echo q >tmp");
   TString model =
-    gSystem->GetFromPipe("/usr/local/bin/wavedump <tmp;sed -n 's/model\\ \\(.*\\)/\\1/p'");
+    gSystem->GetFromPipe("/usr/local/bin/wavedump <tmp | sed -n 's/.*Model\\ \\(.*\\)/\\1/p'");
   // STATUS
   if(model.Length() < 1)
     cout << "[X] STATUS - DGTZ Not Connected!" << endl;
