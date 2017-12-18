@@ -410,6 +410,7 @@ void MonitorBuilder()
    fgButtonCheck->ChangeBackground(ucolor);
    fVerticalFrame2090->AddFrame(fgButtonCheck, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
    fgButtonCheck->MoveResize(2,3,320,24);
+   fgButtonCheck->SetCommand("DoCheck()");
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-17-*-*-*-*-*-*-*");
 
@@ -432,6 +433,7 @@ void MonitorBuilder()
    fgButtonStart->ChangeBackground(ucolor);
    fVerticalFrame2090->AddFrame(fgButtonStart, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
    fgButtonStart->MoveResize(2,29,320,22);
+   fgButtonStart->SetCommand("DoStart()");
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-17-*-*-*-*-*-*-*");
 
@@ -484,23 +486,27 @@ int swaddr = 0; // address on the switch on this FEE (or can loop over a set of 
 const int N_SIPM = 16;
 
 // Check FEE link status, get serial number
-int CheckFEE()
+uint64_t CheckFEE()
 {
   if (linkusb_open(&linkusb, 0))
     return -1; // error messages in linkusb_open
 
   EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
   DS28CM00_read(&linkusb, owaddr, &serial);
-  printf("FEE %d serial number: 0x%016llx\n", swaddr, serial);
+  printf("[-] CHECK - FEE %d serial number: 0x%016llx\n", swaddr, serial);
 
   EPD_disconnect_FEE(&linkusb, owaddr);
   linkusb_close(&linkusb);
-  return 0;
+  return serial;
 }
 
 // FEE initial setup
 int SetFEE(double _voltage = 55.0, double _vslope = 0.054, int _pedestal = 0)
 {
+  // LOG
+  cout << "[-] FEE - Initial setup : vset="<< _voltage
+    << " vslope=" << _vslope << " pedestal=" << _pedestal << endl;
+  
   // Open FEE LinkUSB Interface
   if (linkusb_open(&linkusb, 0))
     return -1; // error messages in linkusb_open
@@ -552,8 +558,11 @@ int TestUiCurve(double _vStart, double _vStop, double _vStep)
   return 0;
 }
 
-int SetVoltage(int _vset)
+int SetVoltage(double _vset)
 {
+  // LOG
+  cout << "[-] FEE - Set voltage : " << _vset << endl;
+
   // Open FEE LinkUSB Interface
   if (linkusb_open(&linkusb, 0))
     return -1; // error messages in linkusb_open
@@ -568,6 +577,9 @@ int SetVoltage(int _vset)
 
 int SetDAC(int _pedestal)
 {
+  // LOG
+  cout << "[-] FEE - Set pedestal : " << _pedestal << endl;
+
   // Open FEE LinkUSB Interface
   if (linkusb_open(&linkusb, 0))
     return -1; // error messages in linkusb_open
@@ -604,7 +616,10 @@ void* OpenDGTZ(void* _PATH){
   cout << log << endl;
   return NULL;
 }
-int ReadDGTZ(const char* _PATH=".", int _samplingSec = 5000){
+int ReadDGTZ(const char* _PATH=".", int _samplingTime = 5000){
+  cout << "[-] DGTZ - Read and Write data into " << _PATH 
+    << " for " << _samplingTime/1000 << " second(s)" << endl;
+
   const int BUUFFER_TIME = 2000; // Prepare buffer data for writing
   TThread* th = new TThread("dgtz",OpenDGTZ);
   gSystem->Exec("echo >tmp");
@@ -612,25 +627,62 @@ int ReadDGTZ(const char* _PATH=".", int _samplingSec = 5000){
   gSystem->Exec("echo s >>tmp"); // Start acquisition
   gSystem->Sleep(BUUFFER_TIME); // milliSec
   gSystem->Exec("echo W >>tmp");  // Start continuous writing
-  gSystem->Sleep(_samplingSec); // milliSec
+  gSystem->Sleep(_samplingTime); // milliSec
   gSystem->Exec("echo s >>tmp");  // Stop acquisitio
   gSystem->Exec("echo q >>tmp");  // Quit
   th->Kill();
   th->Delete();th = NULL;
+
+  cout << "[-] DGTZ - Read over" << endl;
   return 0;
 }
-int CheckDGTZ(){
+TString CheckDGTZ(){
   gSystem->Exec("echo q >tmp");
   TString model =
     gSystem->GetFromPipe("/usr/local/bin/wavedump <tmp | sed -n 's/.*Model\\ \\(.*\\)/\\1/p'");
-  // STATUS
-  if(model.Length() < 1)
-    cout << "[X] STATUS - DGTZ Not Connected!" << endl;
+  // CHECK
+  if(model.Length() < 1){
+    cout << "[X] CHECK - DGTZ Not Connected!" << endl;
+    return "NULL";
+  }
   else
-    cout << "[-] STATUS - DGTZ Model : " << model << endl;
+    cout << "[-] CHECK - DGTZ Model : " << model << endl;
 
-  return 0;
+  return model;
 }
+
+/** 
+ * GUI Actions
+ */
+void DoCheck()
+{
+  char FEENo[256];
+  sprintf(FEENo,"0x%016llx",CheckFEE());
+  fgTextFEENo->SetText(FEENo);
+
+  fgTextDGTZInfo->SetText(CheckDGTZ());
+}
+void DoStart()
+{
+  char path[256];
+  const char* cmd_head = "mkdir -p ";
+  char cmd[256];
+
+  double vset[6] = {46.5,57,58,59,60,61};
+  for(int i = 0 ; i < 6 ; i++){
+    sprintf(path,"%s/%s/%d",fgTextPath->GetText(),fgTextTestID->GetText(),int(vset[i]));
+    sprintf(cmd,"%s%s",cmd_head,path);
+    gSystem->Exec(cmd);
+    // LOG
+    cout << "[-] EXEC - " << cmd << endl;
+    SetVoltage(vset[i]);
+    ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
+
+
+  }
+}
+void DoSave()
+{}
 
 int main(int argc, char* argv[])
 {
