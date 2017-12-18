@@ -612,8 +612,6 @@ void* OpenDGTZ(void* _PATH){
     "cd ", (const char*)_PATH,
     ";/usr/local/bin/wavedump <$OLDPWD/tmp;");
   TString log = gSystem->GetFromPipe(cmd);
-  // DEBUG
-  cout << log << endl;
   return NULL;
 }
 int ReadDGTZ(const char* _PATH=".", int _samplingTime = 5000){
@@ -667,8 +665,24 @@ void DoStart()
   char path[256];
   const char* cmd_head = "mkdir -p ";
   char cmd[256];
-
+  
+  double dac[3] = {-64,64,0};
   double vset[6] = {46.5,57,58,59,60,61};
+  // Test DAC
+  cout << "[-] Test - Processing DAC test" << endl;
+  SetVoltage(vset[0]);
+  for(int i = 0 ; i < 3 ; i++){
+    sprintf(path,"%s/%s/DAC%d",fgTextPath->GetText(),fgTextTestID->GetText(),int(dac[i]));
+    sprintf(cmd,"%s%s",cmd_head,path);
+    gSystem->Exec(cmd);
+    // LOG
+    cout << "[-] EXEC - " << cmd << endl;
+    SetDAC(dac[i]);
+    ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
+  }
+
+  // Test Noise & Signal
+  cout << "[-] Test - Processing Noise & Signal test" << endl;
   for(int i = 0 ; i < 6 ; i++){
     sprintf(path,"%s/%s/%d",fgTextPath->GetText(),fgTextTestID->GetText(),int(vset[i]));
     sprintf(cmd,"%s%s",cmd_head,path);
@@ -677,8 +691,6 @@ void DoStart()
     cout << "[-] EXEC - " << cmd << endl;
     SetVoltage(vset[i]);
     ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
-
-
   }
 }
 void DoSave()
