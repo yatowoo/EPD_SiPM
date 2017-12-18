@@ -43,28 +43,44 @@
 
 #include "Riostream.h"
 
+TGMainFrame* fgMainFrame = NULL;
+// User Interface
+  // IO
+TGTextEntry *fgTextTestID = NULL;
+TGTextEntry *fgTextPath = NULL;
+  // FEE
+TGTextEntry *fgTextFEENo = NULL;
+TGNumberEntry *fgNumVset = NULL;
+TGNumberEntry *fgNumUIVstart = NULL;
+TGNumberEntry *fgNumUIVstop = NULL;
+TGNumberEntry *fgNumUIVstep = NULL;
+  // DGTZ
+TGTextEntry *fgTextDGTZInfo = NULL;
+TGNumberEntry *fgNumDGTZTime = NULL;
+  // Analyzer
+TGTextButton *fgButtonUI = NULL;
+TGTextButton *fgButtonProduce = NULL;
+TGTextButton *fgButtonSlope = NULL;
+TGTextButton *fgButtonGain = NULL;
+TGTextButton *fgButtonVb = NULL;
+  // Controller
+TGTextButton *fgButtonCheck = NULL;
+TGTextButton *fgButtonStart = NULL;
+TGTextButton *fgButtonSave = NULL;
 void MonitorBuilder()
 {
 
-  // main frame
-  TGMainFrame *fMainFrame2933 = new TGMainFrame(gClient->GetRoot(),10,10,kMainFrame | kVerticalFrame);
-   fMainFrame2933->SetWindowName("EPD SiPM Test @ USTC");
-   fMainFrame2933->SetName("fMainFrame2933");
-   fMainFrame2933->SetLayoutBroken(kTRUE);
+   // main frame
+   fgMainFrame = new TGMainFrame(gClient->GetRoot(),324,445,kMainFrame | kVerticalFrame);
+   fgMainFrame->SetWindowName("EPD SiPM Test @ USTC");
+   fgMainFrame->SetName("fgMF");
+   fgMainFrame->SetLayoutBroken(kTRUE);
 
-   // composite frame
-   TGCompositeFrame *fMainFrame2028 = new TGCompositeFrame(fMainFrame2933,324,440,kVerticalFrame);
-   fMainFrame2028->SetName("fMainFrame2028");
-   fMainFrame2028->SetLayoutBroken(kTRUE);
-
-   // composite frame
-   TGCompositeFrame *fMainFrame2190 = new TGCompositeFrame(fMainFrame2028,326,445,kVerticalFrame | kSunkenFrame);
-   fMainFrame2190->SetName("fMainFrame2190");
-   fMainFrame2190->SetLayoutBroken(kTRUE);
-
-   // vertical frame
-   TGVerticalFrame *fVerticalFrame560 = new TGVerticalFrame(fMainFrame2190,320,85,kVerticalFrame | kSunkenFrame);
-   fVerticalFrame560->SetName("fVerticalFrame560");
+/* 
+  vertical frame - Program IO
+*/
+   TGVerticalFrame *fVerticalFrame560 = new TGVerticalFrame(fgMainFrame,320,85,kVerticalFrame | kSunkenFrame);
+   fVerticalFrame560->SetName("fgVFIO");
    fVerticalFrame560->SetLayoutBroken(kTRUE);
 
    TGFont *ufont;         // will reflect user font changes
@@ -104,13 +120,13 @@ void MonitorBuilder()
    valEntry665.fFont = ufont->GetFontHandle();
    valEntry665.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valEntry665, kTRUE);
-   TGTextEntry *fTextEntry665 = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
-   fTextEntry665->SetMaxLength(4096);
-   fTextEntry665->SetAlignment(kTextLeft);
-   fTextEntry665->SetText("Set_00");
-   fTextEntry665->Resize(100,fTextEntry665->GetDefaultHeight());
-   fVerticalFrame560->AddFrame(fTextEntry665, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextEntry665->MoveResize(124,26,100,22);
+   fgTextTestID = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
+   fgTextTestID->SetMaxLength(4096);
+   fgTextTestID->SetAlignment(kTextLeft);
+   fgTextTestID->SetText("Set_00");
+   fgTextTestID->Resize(100,fgTextTestID->GetDefaultHeight());
+   fVerticalFrame560->AddFrame(fgTextTestID, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgTextTestID->MoveResize(124,26,100,22);
    TGLabel *fLabel666 = new TGLabel(fVerticalFrame560,"Path");
    fLabel666->SetTextJustify(36);
    fLabel666->SetMargins(0,0,0,0);
@@ -129,20 +145,22 @@ void MonitorBuilder()
    valEntry667.fFont = ufont->GetFontHandle();
    valEntry667.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valEntry667, kTRUE);
-   TGTextEntry *fTextEntry667 = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
-   fTextEntry667->SetMaxLength(4096);
-   fTextEntry667->SetAlignment(kTextLeft);
-   fTextEntry667->SetText("./data");
-   fTextEntry667->Resize(100,fTextEntry667->GetDefaultHeight());
-   fVerticalFrame560->AddFrame(fTextEntry667, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextEntry667->MoveResize(124,50,100,22);
+   fgTextPath = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
+   fgTextPath->SetMaxLength(4096);
+   fgTextPath->SetAlignment(kTextLeft);
+   fgTextPath->SetText("./data");
+   fgTextPath->Resize(100,fgTextPath->GetDefaultHeight());
+   fVerticalFrame560->AddFrame(fgTextPath, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgTextPath->MoveResize(124,50,100,22);
 
-   fMainFrame2190->AddFrame(fVerticalFrame560, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
+   fgMainFrame->AddFrame(fVerticalFrame560, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
    fVerticalFrame560->MoveResize(1,1,320,85);
 
-   // vertical frame
-   TGVerticalFrame *fVerticalFrame1662 = new TGVerticalFrame(fMainFrame2190,320,96,kVerticalFrame | kSunkenFrame);
-   fVerticalFrame1662->SetName("fVerticalFrame1662");
+/* 
+  vertical frame - FEE
+*/
+   TGVerticalFrame *fVerticalFrame1662 = new TGVerticalFrame(fgMainFrame,320,96,kVerticalFrame | kSunkenFrame);
+   fVerticalFrame1662->SetName("fgVFFEE");
    fVerticalFrame1662->SetLayoutBroken(kTRUE);
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-14-*-*-*-*-*-*-*");
@@ -183,13 +201,13 @@ void MonitorBuilder()
 
    ULong_t ucolor;        // will reflect user color changes
    gClient->GetColorByName("#e8e8e8",ucolor);
-   TGTextEntry *fTextEntry671 = new TGTextEntry(fVerticalFrame1662, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground,ucolor);
-   fTextEntry671->SetMaxLength(4096);
-   fTextEntry671->SetAlignment(kTextLeft);
-   fTextEntry671->SetText("#0x0");
-   fTextEntry671->Resize(99,fTextEntry671->GetDefaultHeight());
-   fVerticalFrame1662->AddFrame(fTextEntry671, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextEntry671->MoveResize(100,23,99,22);
+   fgTextFEENo = new TGTextEntry(fVerticalFrame1662, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground,ucolor);
+   fgTextFEENo->SetMaxLength(4096);
+   fgTextFEENo->SetAlignment(kTextLeft);
+   fgTextFEENo->SetText("#0x0");
+   fgTextFEENo->Resize(99,fgTextFEENo->GetDefaultHeight());
+   fVerticalFrame1662->AddFrame(fgTextFEENo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgTextFEENo->MoveResize(100,23,99,22);
    TGLabel *fLabel672 = new TGLabel(fVerticalFrame1662,"Vset");
    fLabel672->SetTextJustify(36);
    fLabel672->SetMargins(0,0,0,0);
@@ -202,37 +220,34 @@ void MonitorBuilder()
    fLabel673->SetWrapLength(-1);
    fVerticalFrame1662->AddFrame(fLabel673, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fLabel673->MoveResize(10,67,62,16);
-   TGNumberEntry *fNumberEntry1049 = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
-   fNumberEntry1049->SetName("fNumberEntry1049");
-   fVerticalFrame1662->AddFrame(fNumberEntry1049, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fNumberEntry1049->MoveResize(167,67,64,22);
+   fgNumVset = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumVset->SetName("fgNumVset");
+   fVerticalFrame1662->AddFrame(fgNumVset, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumVset->MoveResize(100,45,64,22);
    
-   TGNumberEntry *fNumberEntry1050 = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
-   fNumberEntry1050->SetName("fNumberEntry1050");
-   fVerticalFrame1662->AddFrame(fNumberEntry1050, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fNumberEntry1050->MoveResize(167,67,64,22);
+   fgNumUIVstart = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumUIVstart->SetName("fgNumUIVstart");
+   fVerticalFrame1662->AddFrame(fgNumUIVstart, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumUIVstart->MoveResize(100,67,64,22);
    
-   TGNumberEntry *fNumberEntry1051 = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
-   fNumberEntry1051->SetName("fNumberEntry1051");
-   fVerticalFrame1662->AddFrame(fNumberEntry1051, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fNumberEntry1051->MoveResize(167,67,64,22);
+   fgNumUIVstop = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumUIVstop->SetName("fgNumUIVstop");
+   fVerticalFrame1662->AddFrame(fgNumUIVstop, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumUIVstop->MoveResize(167,67,64,22);
    
-   TGNumberEntry *fNumberEntry1052 = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
-   fNumberEntry1052->SetName("fNumberEntry1052");
-   fVerticalFrame1662->AddFrame(fNumberEntry1052, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fNumberEntry1052->MoveResize(167,67,64,22);
-   
-   TGNumberEntry *fNumberEntry1053 = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
-   fNumberEntry1053->SetName("fNumberEntry1053");
-   fVerticalFrame1662->AddFrame(fNumberEntry1053, new TGLayoutHints(kLHintsNormal));
-   fNumberEntry1053->MoveResize(100,45,64,22);
+   fgNumUIVstep = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumUIVstep->SetName("fgNumUIVstep");
+   fVerticalFrame1662->AddFrame(fgNumUIVstep, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumUIVstep->MoveResize(234,67,64,22);
 
-   fMainFrame2190->AddFrame(fVerticalFrame1662, new TGLayoutHints(kLHintsExpandX));
+   fgMainFrame->AddFrame(fVerticalFrame1662, new TGLayoutHints(kLHintsExpandX));
    fVerticalFrame1662->MoveResize(1,86,320,96);
 
-   // vertical frame
-   TGVerticalFrame *fVerticalFrame1682 = new TGVerticalFrame(fMainFrame2190,320,88,kVerticalFrame | kSunkenFrame);
-   fVerticalFrame1682->SetName("fVerticalFrame1682");
+/*
+  vertical frame - DGTZ
+*/
+   TGVerticalFrame *fVerticalFrame1682 = new TGVerticalFrame(fgMainFrame,320,88,kVerticalFrame | kSunkenFrame);
+   fVerticalFrame1682->SetName("fgVFFEE");
    fVerticalFrame1682->SetLayoutBroken(kTRUE);
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-14-*-*-*-*-*-*-*");
@@ -271,13 +286,13 @@ void MonitorBuilder()
    valEntry980.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valEntry980, kTRUE);
 
-   TGTextEntry *fTextEntry980 = new TGTextEntry(fVerticalFrame1682, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground,ucolor);
-   fTextEntry980->SetMaxLength(4096);
-   fTextEntry980->SetAlignment(kTextLeft);
-   fTextEntry980->SetText("ROC_Version");
-   fTextEntry980->Resize(88,fTextEntry980->GetDefaultHeight());
-   fVerticalFrame1682->AddFrame(fTextEntry980, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextEntry980->MoveResize(128,31,88,22);
+   fgTextDGTZInfo = new TGTextEntry(fVerticalFrame1682, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground,ucolor);
+   fgTextDGTZInfo->SetMaxLength(4096);
+   fgTextDGTZInfo->SetAlignment(kTextLeft);
+   fgTextDGTZInfo->SetText("ROC_Version");
+   fgTextDGTZInfo->Resize(88,fgTextDGTZInfo->GetDefaultHeight());
+   fVerticalFrame1682->AddFrame(fgTextDGTZInfo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgTextDGTZInfo->MoveResize(128,31,88,22);
    TGLabel *fLabel989 = new TGLabel(fVerticalFrame1682,"Sampling Time");
    fLabel989->SetTextJustify(36);
    fLabel989->SetMargins(0,0,0,0);
@@ -285,12 +300,12 @@ void MonitorBuilder()
    fVerticalFrame1682->AddFrame(fLabel989, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fLabel989->MoveResize(2,59,81,16);
 
-   // vertical frame
+   // vertical frame - Sampling Time
    TGVerticalFrame *fVerticalFrame1260 = new TGVerticalFrame(fVerticalFrame1682,80,24,kVerticalFrame);
    fVerticalFrame1260->SetName("fVerticalFrame1260");
-   TGNumberEntry *fNumberEntry1269 = new TGNumberEntry(fVerticalFrame1260, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
-   fNumberEntry1269->SetName("fNumberEntry1269");
-   fVerticalFrame1260->AddFrame(fNumberEntry1269, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumDGTZTime = new TGNumberEntry(fVerticalFrame1260, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumDGTZTime->SetName("fgNumDGTZTime");
+   fVerticalFrame1260->AddFrame(fgNumDGTZTime, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    TGLabel *fLabel1279 = new TGLabel(fVerticalFrame1260,"(s)");
    fLabel1279->SetTextJustify(36);
    fLabel1279->SetMargins(0,0,0,0);
@@ -300,12 +315,14 @@ void MonitorBuilder()
    fVerticalFrame1682->AddFrame(fVerticalFrame1260, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fVerticalFrame1260->MoveResize(128,59,80,24);
 
-   fMainFrame2190->AddFrame(fVerticalFrame1682, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgMainFrame->AddFrame(fVerticalFrame1682, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fVerticalFrame1682->MoveResize(1,184,320,88);
 
-   // vertical frame
-   TGVerticalFrame *fVerticalFrame1410 = new TGVerticalFrame(fMainFrame2190,320,80,kVerticalFrame | kSunkenFrame);
-   fVerticalFrame1410->SetName("fVerticalFrame1410");
+/* 
+  vertical frame - Analyzer
+*/
+   TGVerticalFrame *fVerticalFrame1410 = new TGVerticalFrame(fgMainFrame,320,80,kVerticalFrame | kSunkenFrame);
+   fVerticalFrame1410->SetName("fgVFAnayzer");
    fVerticalFrame1410->SetLayoutBroken(kTRUE);
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-14-*-*-*-*-*-*-*");
@@ -325,47 +342,49 @@ void MonitorBuilder()
    fLabel1597->SetWrapLength(-1);
    fVerticalFrame1410->AddFrame(fLabel1597, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fLabel1597->MoveResize(2,3,59,18);
-   TGTextButton *fTextButton1677 = new TGTextButton(fVerticalFrame1410,"UI Curve",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fTextButton1677->SetTextJustify(36);
-   fTextButton1677->SetMargins(0,0,0,0);
-   fTextButton1677->SetWrapLength(-1);
-   fTextButton1677->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fTextButton1677, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextButton1677->MoveResize(4,27,80,22);
-   TGTextButton *fTextButton1653 = new TGTextButton(fVerticalFrame1410,"Produce",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fTextButton1653->SetTextJustify(36);
-   fTextButton1653->SetMargins(0,0,0,0);
-   fTextButton1653->SetWrapLength(-1);
-   fTextButton1653->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fTextButton1653, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextButton1653->MoveResize(101,27,80,22);
-   TGTextButton *fTextButton1703 = new TGTextButton(fVerticalFrame1410,"Noise Slope",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fTextButton1703->SetTextJustify(36);
-   fTextButton1703->SetMargins(0,0,0,0);
-   fTextButton1703->SetWrapLength(-1);
-   fTextButton1703->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fTextButton1703, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextButton1703->MoveResize(200,27,80,22);
-   TGTextButton *fTextButton1724 = new TGTextButton(fVerticalFrame1410,"Signal Gain",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fTextButton1724->SetTextJustify(36);
-   fTextButton1724->SetMargins(0,0,0,0);
-   fTextButton1724->SetWrapLength(-1);
-   fTextButton1724->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fTextButton1724, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextButton1724->MoveResize(4,51,80,22);
-   TGTextButton *fTextButton1738 = new TGTextButton(fVerticalFrame1410,"V Breakdown",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fTextButton1738->SetTextJustify(36);
-   fTextButton1738->SetMargins(0,0,0,0);
-   fTextButton1738->SetWrapLength(-1);
-   fTextButton1738->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fTextButton1738, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fTextButton1738->MoveResize(101,51,80,22);
+   fgButtonUI = new TGTextButton(fVerticalFrame1410,"UI Curve",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
+   fgButtonUI->SetTextJustify(36);
+   fgButtonUI->SetMargins(0,0,0,0);
+   fgButtonUI->SetWrapLength(-1);
+   fgButtonUI->Resize(80,22);
+   fVerticalFrame1410->AddFrame(fgButtonUI, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgButtonUI->MoveResize(4,27,80,22);
+   fgButtonProduce = new TGTextButton(fVerticalFrame1410,"Produce",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
+   fgButtonProduce->SetTextJustify(36);
+   fgButtonProduce->SetMargins(0,0,0,0);
+   fgButtonProduce->SetWrapLength(-1);
+   fgButtonProduce->Resize(80,22);
+   fVerticalFrame1410->AddFrame(fgButtonProduce, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgButtonProduce->MoveResize(101,27,80,22);
+   fgButtonSlope = new TGTextButton(fVerticalFrame1410,"Noise Slope",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
+   fgButtonSlope->SetTextJustify(36);
+   fgButtonSlope->SetMargins(0,0,0,0);
+   fgButtonSlope->SetWrapLength(-1);
+   fgButtonSlope->Resize(80,22);
+   fVerticalFrame1410->AddFrame(fgButtonSlope, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgButtonSlope->MoveResize(200,27,80,22);
+   fgButtonGain = new TGTextButton(fVerticalFrame1410,"Signal Gain",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
+   fgButtonGain->SetTextJustify(36);
+   fgButtonGain->SetMargins(0,0,0,0);
+   fgButtonGain->SetWrapLength(-1);
+   fgButtonGain->Resize(80,22);
+   fVerticalFrame1410->AddFrame(fgButtonGain, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgButtonGain->MoveResize(4,51,80,22);
+   fgButtonVb = new TGTextButton(fVerticalFrame1410,"V Breakdown",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
+   fgButtonVb->SetTextJustify(36);
+   fgButtonVb->SetMargins(0,0,0,0);
+   fgButtonVb->SetWrapLength(-1);
+   fgButtonVb->Resize(80,22);
+   fVerticalFrame1410->AddFrame(fgButtonVb, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgButtonVb->MoveResize(101,51,80,22);
 
-   fMainFrame2190->AddFrame(fVerticalFrame1410, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgMainFrame->AddFrame(fVerticalFrame1410, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fVerticalFrame1410->MoveResize(1,276,320,80);
 
-   // vertical frame
-   TGVerticalFrame *fVerticalFrame2090 = new TGVerticalFrame(fMainFrame2190,320,82,kVerticalFrame | kSunkenFrame);
+/*
+  vertical frame - Controller
+*/
+   TGVerticalFrame *fVerticalFrame2090 = new TGVerticalFrame(fgMainFrame,320,82,kVerticalFrame | kSunkenFrame);
    fVerticalFrame2090->SetName("fVerticalFrame2090");
    fVerticalFrame2090->SetLayoutManager(new TGMatrixLayout(fVerticalFrame2090,3,1,2,0));
    fVerticalFrame2090->SetLayoutBroken(kTRUE);
@@ -383,15 +402,14 @@ void MonitorBuilder()
    uGC = gClient->GetGC(&valButton2206, kTRUE);
 
    gClient->GetColorByName("#00ffcc",ucolor);
-   TGTextButton *fTextButton2206 = new TGTextButton(fVerticalFrame2090,"Check",-1,uGC->GetGC(),ufont->GetFontStruct(),kRaisedFrame);
-   fTextButton2206->SetTextJustify(36);
-   fTextButton2206->SetMargins(0,0,0,0);
-   fTextButton2206->SetWrapLength(-1);
-   fTextButton2206->Resize(306,24);
-
-   fTextButton2206->ChangeBackground(ucolor);
-   fVerticalFrame2090->AddFrame(fTextButton2206, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
-   fTextButton2206->MoveResize(2,3,306,24);
+   fgButtonCheck = new TGTextButton(fVerticalFrame2090,"Check",-1,uGC->GetGC(),ufont->GetFontStruct(),kRaisedFrame);
+   fgButtonCheck->SetTextJustify(36);
+   fgButtonCheck->SetMargins(0,0,0,0);
+   fgButtonCheck->SetWrapLength(-1);
+   fgButtonCheck->Resize(320,24);
+   fgButtonCheck->ChangeBackground(ucolor);
+   fVerticalFrame2090->AddFrame(fgButtonCheck, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
+   fgButtonCheck->MoveResize(2,3,320,24);
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-17-*-*-*-*-*-*-*");
 
@@ -406,15 +424,14 @@ void MonitorBuilder()
    uGC = gClient->GetGC(&valButton2236, kTRUE);
 
    gClient->GetColorByName("#ff0000",ucolor);
-   TGTextButton *fTextButton2236 = new TGTextButton(fVerticalFrame2090,"START",-1,uGC->GetGC(),ufont->GetFontStruct(),kRaisedFrame);
-   fTextButton2236->SetTextJustify(36);
-   fTextButton2236->SetMargins(0,0,0,0);
-   fTextButton2236->SetWrapLength(-1);
-   fTextButton2236->Resize(306,22);
-
-   fTextButton2236->ChangeBackground(ucolor);
-   fVerticalFrame2090->AddFrame(fTextButton2236, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
-   fTextButton2236->MoveResize(2,29,306,22);
+   fgButtonStart = new TGTextButton(fVerticalFrame2090,"START",-1,uGC->GetGC(),ufont->GetFontStruct(),kRaisedFrame);
+   fgButtonStart->SetTextJustify(36);
+   fgButtonStart->SetMargins(0,0,0,0);
+   fgButtonStart->SetWrapLength(-1);
+   fgButtonStart->Resize(320,22);
+   fgButtonStart->ChangeBackground(ucolor);
+   fVerticalFrame2090->AddFrame(fgButtonStart, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
+   fgButtonStart->MoveResize(2,29,320,22);
 
    ufont = gClient->GetFont("-*-helvetica-bold-r-*-*-17-*-*-*-*-*-*-*");
 
@@ -429,35 +446,29 @@ void MonitorBuilder()
    uGC = gClient->GetGC(&valButton2277, kTRUE);
 
    gClient->GetColorByName("#ffffff",ucolor);
-   TGTextButton *fTextButton2277 = new TGTextButton(fVerticalFrame2090,"Save",-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame);
-   fTextButton2277->SetTextJustify(36);
-   fTextButton2277->SetMargins(0,0,0,0);
-   fTextButton2277->SetWrapLength(-1);
-   fTextButton2277->Resize(306,22);
-   fTextButton2277->SetState(kButtonDown);
-
+   fgButtonSave = new TGTextButton(fVerticalFrame2090,"Save",-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame);
+   fgButtonSave->SetTextJustify(36);
+   fgButtonSave->SetMargins(0,0,0,0);
+   fgButtonSave->SetWrapLength(-1);
+   fgButtonSave->Resize(320,22);
+   fgButtonSave->SetState(kButtonDown);
    gClient->GetColorByName("#ffffff",ucolor);
-   fTextButton2277->ChangeBackground(ucolor);
-   fVerticalFrame2090->AddFrame(fTextButton2277, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
-   fTextButton2277->MoveResize(2,55,306,22);
+   fgButtonSave->ChangeBackground(ucolor);
+   fVerticalFrame2090->AddFrame(fgButtonSave, new TGLayoutHints(kLHintsLeft | kLHintsCenterX | kLHintsTop | kLHintsExpandX,2,2,2,2));
+   fgButtonSave->MoveResize(2,55,320,22);
 
-   fMainFrame2190->AddFrame(fVerticalFrame2090, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+// Render MainFrame
+   fgMainFrame->AddFrame(fVerticalFrame2090, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fVerticalFrame2090->MoveResize(1,360,320,82);
 
-   fMainFrame2028->AddFrame(fMainFrame2190, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
-   fMainFrame2190->MoveResize(0,0,326,445);
-
-   fMainFrame2933->AddFrame(fMainFrame2028, new TGLayoutHints(kLHintsExpandX | kLHintsExpandY));
-   fMainFrame2028->MoveResize(0,0,324,440);
-
-   fMainFrame2933->SetMWMHints(kMWMDecorAll,
+   fgMainFrame->SetMWMHints(kMWMDecorAll,
                         kMWMFuncAll,
                         kMWMInputModeless);
-   fMainFrame2933->MapSubwindows();
+   fgMainFrame->MapSubwindows();
 
-   fMainFrame2933->Resize(fMainFrame2933->GetDefaultSize());
-   fMainFrame2933->MapWindow();
-   fMainFrame2933->Resize(324,445);
+   fgMainFrame->Resize(fgMainFrame->GetDefaultSize());
+   fgMainFrame->MapWindow();
+   fgMainFrame->Resize(324,445);
 }
 
 /*
