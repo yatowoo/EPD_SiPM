@@ -123,7 +123,7 @@ void MonitorBuilder()
    fgTextTestID = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
    fgTextTestID->SetMaxLength(4096);
    fgTextTestID->SetAlignment(kTextLeft);
-   fgTextTestID->SetText("Set_00");
+   fgTextTestID->SetText("TestID");
    fgTextTestID->Resize(100,fgTextTestID->GetDefaultHeight());
    fVerticalFrame560->AddFrame(fgTextTestID, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgTextTestID->MoveResize(124,26,100,22);
@@ -148,7 +148,7 @@ void MonitorBuilder()
    fgTextPath = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
    fgTextPath->SetMaxLength(4096);
    fgTextPath->SetAlignment(kTextLeft);
-   fgTextPath->SetText("./data");
+   fgTextPath->SetText("..");
    fgTextPath->Resize(100,fgTextPath->GetDefaultHeight());
    fVerticalFrame560->AddFrame(fgTextPath, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgTextPath->MoveResize(124,50,100,22);
@@ -207,7 +207,7 @@ void MonitorBuilder()
    fgTextFEENo->SetText("#0x0");
    fgTextFEENo->Resize(99,fgTextFEENo->GetDefaultHeight());
    fVerticalFrame1662->AddFrame(fgTextFEENo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgTextFEENo->MoveResize(100,23,99,22);
+   fgTextFEENo->MoveResize(100,23,128,22);
    TGLabel *fLabel672 = new TGLabel(fVerticalFrame1662,"Vset");
    fLabel672->SetTextJustify(36);
    fLabel672->SetMargins(0,0,0,0);
@@ -229,16 +229,19 @@ void MonitorBuilder()
    fgNumUIVstart->SetName("fgNumUIVstart");
    fVerticalFrame1662->AddFrame(fgNumUIVstart, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgNumUIVstart->MoveResize(100,67,64,22);
-   
+   fgNumUIVstart->SetNumber(54.);
+
    fgNumUIVstop = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumUIVstop->SetName("fgNumUIVstop");
    fVerticalFrame1662->AddFrame(fgNumUIVstop, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgNumUIVstop->MoveResize(167,67,64,22);
+   fgNumUIVstop->SetNumber(58.);
    
    fgNumUIVstep = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumUIVstep->SetName("fgNumUIVstep");
    fVerticalFrame1662->AddFrame(fgNumUIVstep, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgNumUIVstep->MoveResize(234,67,64,22);
+   fgNumUIVstep->SetNumber(1.);
 
    fgMainFrame->AddFrame(fVerticalFrame1662, new TGLayoutHints(kLHintsExpandX));
    fVerticalFrame1662->MoveResize(1,86,320,96);
@@ -267,12 +270,12 @@ void MonitorBuilder()
    fLabel691->SetWrapLength(-1);
    fVerticalFrame1682->AddFrame(fLabel691, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fLabel691->MoveResize(2,3,39,18);
-   TGLabel *fLabel692 = new TGLabel(fVerticalFrame1682,"Info");
+   TGLabel *fLabel692 = new TGLabel(fVerticalFrame1682,"Type");
    fLabel692->SetTextJustify(36);
-   fLabel692->SetMargins(0,0,0,0);
+   fLabel692->SetMargins(5,0,0,0);
    fLabel692->SetWrapLength(-1);
    fVerticalFrame1682->AddFrame(fLabel692, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fLabel692->MoveResize(2,31,20,16);
+   fLabel692->MoveResize(2,31,40,16);
 
    ufont = gClient->GetFont("-*-helvetica-medium-r-*-*-12-*-*-*-*-*-iso8859-1");
 
@@ -289,16 +292,16 @@ void MonitorBuilder()
    fgTextDGTZInfo = new TGTextEntry(fVerticalFrame1682, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground,ucolor);
    fgTextDGTZInfo->SetMaxLength(4096);
    fgTextDGTZInfo->SetAlignment(kTextLeft);
-   fgTextDGTZInfo->SetText("ROC_Version");
+   fgTextDGTZInfo->SetText("Unknown");
    fgTextDGTZInfo->Resize(88,fgTextDGTZInfo->GetDefaultHeight());
    fVerticalFrame1682->AddFrame(fgTextDGTZInfo, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgTextDGTZInfo->MoveResize(128,31,88,22);
-   TGLabel *fLabel989 = new TGLabel(fVerticalFrame1682,"Sampling Time");
+   TGLabel *fLabel989 = new TGLabel(fVerticalFrame1682,"Sampling Time(s)");
    fLabel989->SetTextJustify(36);
    fLabel989->SetMargins(0,0,0,0);
    fLabel989->SetWrapLength(-1);
    fVerticalFrame1682->AddFrame(fLabel989, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fLabel989->MoveResize(2,59,81,16);
+   fLabel989->MoveResize(2,59,100,16);
 
    // vertical frame - Sampling Time
    TGVerticalFrame *fVerticalFrame1260 = new TGVerticalFrame(fVerticalFrame1682,80,24,kVerticalFrame);
@@ -306,6 +309,7 @@ void MonitorBuilder()
    fgNumDGTZTime = new TGNumberEntry(fVerticalFrame1260, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumDGTZTime->SetName("fgNumDGTZTime");
    fVerticalFrame1260->AddFrame(fgNumDGTZTime, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumDGTZTime->SetNumber(10);
    TGLabel *fLabel1279 = new TGLabel(fVerticalFrame1260,"(s)");
    fLabel1279->SetTextJustify(36);
    fLabel1279->SetMargins(0,0,0,0);
@@ -644,7 +648,7 @@ int TestUICurve()
   if (linkusb_open(&linkusb, 0))
     return -1; // error messages in linkusb_open
   EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
-  for(int i = 0; i <= N_VOLTAGE_PTS; i++)
+  for(int i = 1; i <= N_VOLTAGE_PTS; i++)
   {
     vset[i]= _vStart + i * _vStep;
     for(int ch = 0 ; ch < N_SIPM ; ch++)
@@ -698,8 +702,8 @@ void DoStart()
   }
 
   // Test Noise & Signal
-  cout << "[-] Test - Processing Noise & Signal test" << endl;
-  for(int i = 0 ; i < 6 ; i++){
+  cout << "[-] Test - Processing Signal test" << endl;
+  for(int i = 1 ; i < 6 ; i++){
     sprintf(path,"%s/%s/%d",fgTextPath->GetText(),fgTextTestID->GetText(),int(vset[i]));
     sprintf(cmd,"%s%s",cmd_head,path);
     gSystem->Exec(cmd);
@@ -708,6 +712,7 @@ void DoStart()
     SetVoltage(vset[i]);
     ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
   }
+  cout << "[-] Test - Signal test completed." << endl;
 }
 void DoSave()
 {
