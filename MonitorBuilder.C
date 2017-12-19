@@ -682,6 +682,9 @@ void DoCheck()
 }
 void DoStart()
 {
+  cout << "[-] Test - Processing UI curve test" << endl;
+  TestUICurve();
+
   char path[256];
   const char* cmd_head = "mkdir -p ";
   char cmd[256];
