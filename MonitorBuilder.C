@@ -227,19 +227,19 @@ void MonitorBuilder()
    fgNumUIVstart->SetName("fgNumUIVstart");
    fVerticalFrame1662->AddFrame(fgNumUIVstart, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgNumUIVstart->MoveResize(100,67,64,22);
-   fgNumUIVstart->SetNumber(54.);
+   fgNumUIVstart->SetNumber(53.);
 
    fgNumUIVstop = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumUIVstop->SetName("fgNumUIVstop");
    fVerticalFrame1662->AddFrame(fgNumUIVstop, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgNumUIVstop->MoveResize(167,67,64,22);
-   fgNumUIVstop->SetNumber(58.);
+   fgNumUIVstop->SetNumber(63.);
    
    fgNumUIVstep = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumUIVstep->SetName("fgNumUIVstep");
    fVerticalFrame1662->AddFrame(fgNumUIVstep, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgNumUIVstep->MoveResize(234,67,64,22);
-   fgNumUIVstep->SetNumber(1.);
+   fgNumUIVstep->SetNumber(0.5);
 
    fgMainFrame->AddFrame(fVerticalFrame1662, new TGLayoutHints(kLHintsExpandX));
    fVerticalFrame1662->MoveResize(1,86,320,96);
@@ -307,7 +307,7 @@ void MonitorBuilder()
    fgNumDGTZTime = new TGNumberEntry(fVerticalFrame1260, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumDGTZTime->SetName("fgNumDGTZTime");
    fVerticalFrame1260->AddFrame(fgNumDGTZTime, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgNumDGTZTime->SetNumber(10);
+   fgNumDGTZTime->SetNumber(15);
    TGLabel *fLabel1279 = new TGLabel(fVerticalFrame1260,"(s)");
    fLabel1279->SetTextJustify(36);
    fLabel1279->SetMargins(0,0,0,0);
@@ -617,7 +617,7 @@ TString CheckDGTZ(){
 /** 
  * GUI Actions
  */
-const double VSET_MAX = 63;
+const double VSET_MAX = 63.1;
 const double VSTEP_MIN = 0.01;
 bool CheckUICurveParams(double _vStart, double _vStop, double _vStep)
 {
@@ -633,12 +633,15 @@ int TestUICurve()
   double _vStart = fgNumUIVstart->GetNumber();
   double _vStop = fgNumUIVstop->GetNumber();
   double _vStep = fgNumUIVstep->GetNumber();
+  cout << "[-] Test - Processing UI curve test - setup=(" 
+    << _vStart << "," << _vStop << "," << _vStep << ")"
+    << endl;
   if(!CheckUICurveParams(_vStart,_vStop,_vStep)){
-    cout << "[-] Test - UI Curve - Invalid input params." << endl;
+    cout << "[-] ERROR - UI Curve - Invalid input params." << endl;
     return -1;
   }
 
-  const int N_VOLTAGE_PTS = (_vStop - _vStart) / _vStep;
+  const int N_VOLTAGE_PTS = (_vStop - _vStart) / _vStep + 1;
   double vset[N_VOLTAGE_PTS];
   double imon[N_SIPM][N_VOLTAGE_PTS];
   
@@ -646,7 +649,7 @@ int TestUICurve()
   if (linkusb_open(&linkusb, 0))
     return -1; // error messages in linkusb_open
   EPD_connect_FEE(&linkusb, owaddr, swaddr); // connect to FEE at switch address 0
-  for(int i = 1; i <= N_VOLTAGE_PTS; i++)
+  for(int i = 0; i < N_VOLTAGE_PTS; i++)
   {
     vset[i]= _vStart + i * _vStep;
     for(int ch = 0 ; ch < N_SIPM ; ch++)
@@ -681,8 +684,6 @@ void DoCheck()
 #include "Process/Control_Class_numbers.cpp"
 void DoStart()
 {
-  cout << "[-] Test - Processing UI curve test" << endl;
-  TestUICurve();
 
   char dir[256];
   sprintf(dir,"%s/B%d",fgTextPath->GetText(),fgNumTestID->GetNumber());
@@ -719,13 +720,14 @@ void DoStart()
   cout << "[-] Test - Signal test completed." << endl;
   
   // Analyzer
-  char c_john[128];
-  sprintf(c_john, "mv %s/DAC_0_46V %s/46V", dir, dir);
-  gSystem -> Exec(c_john);
+  sprintf(cmd, "mv %s/DAC_0_46V %s/46V", dir, dir);
+  gSystem -> Exec(cmd);
+  cout << "[-] EXEC - " << cmd << endl;
 
   Board_Control* bdc = new Board_Control(fgTextPath->GetText(),fgNumTestID->GetNumber());
   bdc -> Start();
-  // bdc -> Write()
+  if(mg)
+    bdc -> Write_Other_Object(mg);
 }
 void DoSave()
 {

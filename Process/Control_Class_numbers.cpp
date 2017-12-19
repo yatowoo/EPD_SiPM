@@ -128,6 +128,7 @@ void Channel_Control::Write_Noise()
 
   for(int j = 0; fin . eof() == 0; j++)
   {
+    
 
     for(int i = 0; i < 1024; i++)
     {
@@ -138,6 +139,11 @@ void Channel_Control::Write_Noise()
       wave . SetBinContent(i + 1, temp);
     }
     // throw 1;
+
+    if(j < 200)
+    {
+      continue;
+    }
 
     TF1 f1("tempf", "[0]+[1]*x", 0, 1024);
 
@@ -235,6 +241,12 @@ void Channel_Control::Write_DAC()
         // wave . SetBinContent(i + 1, temp);
         wave . SetBinContent(k + 1, temp);
       }
+
+      if(j < 200)
+      {
+        continue;
+      }
+
 
       // TF1 f("f", "[0]+[1]*x", 0, 1024);
       // wave.Fit(&f, "N", "", 0, 1024);
@@ -375,6 +387,12 @@ void Channel_Control::Write_Signal()
           }
           // cout << i << "\t";
         }
+
+        if(j < 200)
+        {
+          continue;
+        }
+
 
 
         // TF1 f2("tempf", "[0]+[1]*x", 0, 1024);
