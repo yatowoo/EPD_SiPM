@@ -46,7 +46,7 @@
 TGMainFrame* fgMainFrame = NULL;
 // User Interface
   // IO
-TGTextEntry *fgTextTestID = NULL;
+TGNumberEntry *fgNumTestID = NULL;
 TGTextEntry *fgTextPath = NULL;
   // FEE
 TGTextEntry *fgTextFEENo = NULL;
@@ -120,13 +120,11 @@ void MonitorBuilder()
    valEntry665.fFont = ufont->GetFontHandle();
    valEntry665.fGraphicsExposures = kFALSE;
    uGC = gClient->GetGC(&valEntry665, kTRUE);
-   fgTextTestID = new TGTextEntry(fVerticalFrame560, new TGTextBuffer(14),-1,uGC->GetGC(),ufont->GetFontStruct(),kSunkenFrame | kOwnBackground);
-   fgTextTestID->SetMaxLength(4096);
-   fgTextTestID->SetAlignment(kTextLeft);
-   fgTextTestID->SetText("TestID");
-   fgTextTestID->Resize(100,fgTextTestID->GetDefaultHeight());
-   fVerticalFrame560->AddFrame(fgTextTestID, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgTextTestID->MoveResize(124,26,100,22);
+   fgNumTestID = new TGNumberEntry(fVerticalFrame560, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumTestID->SetNumber(0);
+   fgNumTestID->Resize(100,fgNumTestID->GetDefaultHeight());
+   fVerticalFrame560->AddFrame(fgNumTestID, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumTestID->MoveResize(124,26,100,22);
    TGLabel *fLabel666 = new TGLabel(fVerticalFrame560,"Path");
    fLabel666->SetTextJustify(36);
    fLabel666->SetMargins(0,0,0,0);
@@ -583,7 +581,7 @@ void* OpenDGTZ(void* _PATH){
 }
 int ReadDGTZ(const char* _PATH=".", int _samplingTime = 5000){
   cout << "[-] DGTZ - Read and Write data into " << _PATH 
-    << " for " << _samplingTime/1000 << " second(s)" << endl;
+    << " for " << _samplingTime/1000. << " second(s)" << endl;
 
   const int BUUFFER_TIME = 2000; // Prepare buffer data for writing
   TThread* th = new TThread("dgtz",OpenDGTZ);
@@ -680,22 +678,25 @@ void DoCheck()
 
   fgTextDGTZInfo->SetText(CheckDGTZ());
 }
+#include "Process/Control_Class_numbers.cpp"
 void DoStart()
 {
   cout << "[-] Test - Processing UI curve test" << endl;
   TestUICurve();
 
+  char dir[256];
+  sprintf(dir,"%s/B%d",fgTextPath->GetText(),fgNumTestID->GetNumber());
   char path[256];
   const char* cmd_head = "mkdir -p ";
   char cmd[256];
   
-  double dac[3] = {-64,64,0};
+  int dac[3] = {-64,64,0};
   double vset[6] = {46.5,57,58,59,60,61};
   // Test DAC
   cout << "[-] Test - Processing DAC test" << endl;
   SetVoltage(vset[0]);
   for(int i = 0 ; i < 3 ; i++){
-    sprintf(path,"%s/%s/DAC%d",fgTextPath->GetText(),fgTextTestID->GetText(),int(dac[i]));
+    sprintf(path,"%s/DAC_%d_%dV",dir,dac[i],int(vset[0]));
     sprintf(cmd,"%s%s",cmd_head,path);
     gSystem->Exec(cmd);
     // LOG
@@ -707,7 +708,7 @@ void DoStart()
   // Test Noise & Signal
   cout << "[-] Test - Processing Signal test" << endl;
   for(int i = 1 ; i < 6 ; i++){
-    sprintf(path,"%s/%s/%d",fgTextPath->GetText(),fgTextTestID->GetText(),int(vset[i]));
+    sprintf(path,"%s/%dV",dir,int(vset[i]));
     sprintf(cmd,"%s%s",cmd_head,path);
     gSystem->Exec(cmd);
     // LOG
@@ -716,11 +717,20 @@ void DoStart()
     ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
   }
   cout << "[-] Test - Signal test completed." << endl;
+  
+  // Analyzer
+  char c_john[128];
+  sprintf(c_john, "mv %s/DAC_0_46V %s/46V", dir, dir);
+  gSystem -> Exec(c_john);
+
+  Board_Control* bdc = new Board_Control(fgTextPath->GetText(),fgNumTestID->GetNumber());
+  bdc -> Start();
+  // bdc -> Write()
 }
 void DoSave()
 {
   char path[256];
-  sprintf(path,"%s/%s/%s",fgTextPath->GetText(),fgTextTestID->GetText(),"UICurve.root");
+  sprintf(path,"%s/B%d/%s",fgTextPath->GetText(),fgNumTestID->GetNumber(),"UICurve.root");
   if(mg)
     mg->SaveAs(path);
   else
