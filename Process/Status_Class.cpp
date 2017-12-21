@@ -73,7 +73,7 @@ protected:
 };
 
 Board_Status::Board_Status(int board_Num):
-Board_Num(board_Num), Voltage_Nums(6), Voltage_Noise(46), DAC_Nums(3), Voltage_Signal{57, 58, 59, 60, 61}, DAC{-64, 0, 64}
+Board_Num(board_Num), Voltage_Nums(2), Voltage_Noise(46), DAC_Nums(3), Voltage_Signal{60}, DAC{-127, 0, 127}
 {
   // Voltage_Signal = new const double[5]{56, 58, 60, 62, 64};
   //
@@ -81,7 +81,7 @@ Board_Num(board_Num), Voltage_Nums(6), Voltage_Noise(46), DAC_Nums(3), Voltage_S
 }
 
 Board_Status::Board_Status(int board_Num, int voltage_Nums, double *voltages):
-Board_Num(board_Num), Voltage_Nums(voltage_Nums), Voltage_Noise(voltages[0]), DAC_Nums(3), DAC{-64, 0, 64}
+Board_Num(board_Num), Voltage_Nums(voltage_Nums), Voltage_Noise(voltages[0]), DAC_Nums(3), DAC{-127, 0, 127}
 {
   // double *temp = new double[Voltage_Nums - 1];
   for(int i = 0; i < Voltage_Nums - 1; i++)

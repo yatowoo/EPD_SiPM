@@ -162,7 +162,7 @@ class Noise_Ped_Hist : public TH1F
 public:
   Noise_Ped_Hist() = default;
   Noise_Ped_Hist(string name, string title):
-  TH1F(to_char(name), to_char(title), 10000, 2000, 3000)
+  TH1F(to_char(name), to_char(title), 10000, 2050, 2600)
   {}
 };
 
@@ -171,7 +171,7 @@ class Signal_Charge_Hist : public TH1F
 public:
   Signal_Charge_Hist() = default;
   Signal_Charge_Hist(string name, string title, double Calibration_Coefficience = 2.60925e-1 * 1e-9 * 1e-3 / 5):
-  TH1F(to_char(name), to_char(title), 3000, -10000 * Calibration_Coefficience, 8000 * Calibration_Coefficience){}
+  TH1F(to_char(name), to_char(title), 3000, -4000 * Calibration_Coefficience, 1000 * Calibration_Coefficience){}
 };
 
 

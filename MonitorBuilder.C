@@ -662,7 +662,10 @@ int TestUICurve()
   // Close FEE connect
   EPD_disconnect_FEE(&linkusb, owaddr);
   linkusb_close(&linkusb);
-
+  if(mg){
+    delete mg;
+    mg = NULL;
+  }
   mg = new TMultiGraph("ui","UI Curve of SiPM");
   TGraph *ui[N_SIPM];
   for(int ch = 0 ; ch < N_SIPM ; ch++)
@@ -673,6 +676,8 @@ int TestUICurve()
   return 0;
 }
 
+char dir[256];
+char cmd[256];
 void DoCheck()
 {
   char FEENo[256];
@@ -680,51 +685,54 @@ void DoCheck()
   fgTextFEENo->SetText(FEENo);
 
   fgTextDGTZInfo->SetText(CheckDGTZ());
+
+  sprintf(dir,"%s/B%d",fgTextPath->GetText(),int(fgNumTestID->GetNumber()));
+  sprintf(cmd,"mkdir -p %s",dir);
+  cout << "[-] EXEC - " << cmd << endl;
+  gSystem->Exec(cmd);
 }
 #include "Process/Control_Class_numbers.cpp"
 void DoStart()
 {
-
-  char dir[256];
-  sprintf(dir,"%s/B%d",fgTextPath->GetText(),fgNumTestID->GetNumber());
+  if(strlen(dir) == 0)
+    cout << "[-] ERROR - Please 'Check' first" << endl;
   char path[256];
   const char* cmd_head = "mkdir -p ";
-  char cmd[256];
+  int dac[3] = {-127,127,0};
+  // TODO : REPLACE with GUI entry
+  double vset_noise = 46.5;
+  double vset_signal = 60.;
   
-  int dac[3] = {-64,64,0};
-  double vset[6] = {46.5,57,58,59,60,61};
   // Test DAC
   cout << "[-] Test - Processing DAC test" << endl;
-  SetVoltage(vset[0]);
+  SetVoltage(vset_noise);
   for(int i = 0 ; i < 3 ; i++){
-    sprintf(path,"%s/DAC_%d_%dV",dir,dac[i],int(vset[0]));
+    sprintf(path,"%s/DAC_%d_%dV",dir,dac[i],int(vset_noise));
     sprintf(cmd,"%s%s",cmd_head,path);
     gSystem->Exec(cmd);
-    // LOG
     cout << "[-] EXEC - " << cmd << endl;
+
     SetDAC(dac[i]);
     ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
   }
 
-  // Test Noise & Signal
+  // Test Signal
   cout << "[-] Test - Processing Signal test" << endl;
-  for(int i = 1 ; i < 6 ; i++){
-    sprintf(path,"%s/%dV",dir,int(vset[i]));
-    sprintf(cmd,"%s%s",cmd_head,path);
-    gSystem->Exec(cmd);
-    // LOG
-    cout << "[-] EXEC - " << cmd << endl;
-    SetVoltage(vset[i]);
-    ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
-  }
+  sprintf(path,"%s/%dV",dir,int(vset_signal));
+  sprintf(cmd,"%s%s",cmd_head,path);
+  gSystem->Exec(cmd);
+  cout << "[-] EXEC - " << cmd << endl;
+
+  SetVoltage(vset_signal);
+  ReadDGTZ(path,fgNumDGTZTime->GetNumber()*1000);
   cout << "[-] Test - Signal test completed." << endl;
   
   // Analyzer
-  sprintf(cmd, "mv %s/DAC_0_46V %s/46V", dir, dir);
+  sprintf(cmd, "rm -rf %s/46V; mv -f %s/DAC_0_46V %s/46V", dir, dir, dir);
   gSystem -> Exec(cmd);
   cout << "[-] EXEC - " << cmd << endl;
 
-  Board_Control* bdc = new Board_Control(fgTextPath->GetText(),fgNumTestID->GetNumber());
+  Board_Control* bdc = new Board_Control(fgTextPath->GetText(),int(fgNumTestID->GetNumber()));
   bdc -> Start();
   if(mg)
     bdc -> Write_Other_Object(mg);
@@ -732,7 +740,7 @@ void DoStart()
 void DoSave()
 {
   char path[256];
-  sprintf(path,"%s/B%d/%s",fgTextPath->GetText(),fgNumTestID->GetNumber(),"UICurve.root");
+  sprintf(path,"%s/B%d/%s",fgTextPath->GetText(),int(fgNumTestID->GetNumber()),"UICurve.root");
   if(mg)
     mg->SaveAs(path);
   else

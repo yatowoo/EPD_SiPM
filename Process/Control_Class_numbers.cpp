@@ -3,8 +3,8 @@
 
 #include "Status_Class.cpp"
 
-#define SIGNAL_START (630)
-#define SIGNAL_END (720)
+#define SIGNAL_START (500)
+#define SIGNAL_END (600)
 #define SIGNAL_LENGTH (SIGNAL_END)-(SIGNAL_START)
 
 #define SAMPLE_GAP 10
@@ -140,18 +140,20 @@ void Channel_Control::Write_Noise()
     }
     // throw 1;
 
-    if(j < 200)
-    {
-      continue;
-    }
+    // if(j < 200)
+    // {
+    //   continue;
+    // }
 
     TF1 f1("tempf", "[0]+[1]*x", 0, 1024);
 
 
 
-    wave . Fit(&f1, "N", "", 0, 1024);
-    Noise_Slope . Fill(f1 . GetParameter(1));
-    Noise_Ped . Fill(f1 . GetParameter(0));
+    // wave . Fit(&f1, "NQR", "", 0, 1024);
+    // Noise_Slope . Fill(f1 . GetParameter(1));
+    // Noise_Ped . Fill(f1 . GetParameter(0));
+    Noise_Ped . Fill(wave . Integral() / 1024);
+
 
     Noise_FFT_Hist fft_temp("fft_temp", "fft_temp");
     wave . FFT(&fft_temp, "MAG R2C EX");
@@ -242,14 +244,16 @@ void Channel_Control::Write_DAC()
         wave . SetBinContent(k + 1, temp);
       }
 
-      if(j < 200)
-      {
-        continue;
-      }
+      // if(j < 200)
+      // {
+      //   continue;
+      // }
 
-
-      // TF1 f("f", "[0]+[1]*x", 0, 1024);
-      // wave.Fit(&f, "N", "", 0, 1024);
+        {
+          // TF1 f("f", "[0]+[1]*x", 0, 1024);
+          // wave.Fit(&f, "NQR", "", 0, 1024);
+          // DAC_Ped . Fill(f . GetParameter(0));
+        }
 
       // if(f.GetParameter(1) < 1e-7)
       // {
@@ -259,6 +263,8 @@ void Channel_Control::Write_DAC()
       // {
       //   DAC_Ped . Fill(f . GetParameter(0));
       // }
+
+
 
       DAC_Ped . Fill(wave . Integral() / 1024);
       // cout << wave.GetMean(2) << endl;
@@ -388,10 +394,10 @@ void Channel_Control::Write_Signal()
           // cout << i << "\t";
         }
 
-        if(j < 200)
-        {
-          continue;
-        }
+        // if(j < 200)
+        // {
+        //   continue;
+        // }
 
 
 
@@ -500,17 +506,25 @@ class Board_Control
 public:
   Board_Control(string root_folder, int Board_Num): Board_Basic_Status(root_folder, Board_Num)
   {
-    auto file_temp = new TFile(to_char(Board_Basic_Status . Root_File_Name()));
-    if(file_temp -> IsOpen() == true)
-    {
-      f = file_temp;
-      Is_Done = true;
-    }
-    else
-    {
-      f =  new TFile(to_char(Board_Basic_Status . Root_File_Name()), "recreate");
-      Is_Done = false;
-    }
+    // auto file_temp = new TFile(to_char(Board_Basic_Status . Root_File_Name()));
+    // if(file_temp -> IsOpen() == true)
+    // {
+    //   f = file_temp;
+    //   Is_Done = true;
+    // }
+    // else
+    // {
+    //   f =  new TFile(to_char(Board_Basic_Status . Root_File_Name()), "recreate");
+    //   Is_Done = false;
+    // }
+    cout << SAVE_FIRST << endl;
+    cout << SAVE_LAST << endl;
+    cout << SAVE_BINS << endl;
+
+    f =  new TFile(to_char(Board_Basic_Status . Root_File_Name()), "recreate");
+    Is_Done = false;
+  
+
   }
 
   ~Board_Control()
