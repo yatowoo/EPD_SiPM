@@ -51,6 +51,8 @@ TGTextEntry *fgTextPath = NULL;
   // FEE
 TGTextEntry *fgTextFEENo = NULL;
 TGNumberEntry *fgNumVset = NULL;
+TGNumberEntry *fgNumVslope = NULL;
+TGNumberEntry *fgNumDAC = NULL;
 TGNumberEntry *fgNumUIVstart = NULL;
 TGNumberEntry *fgNumUIVstop = NULL;
 TGNumberEntry *fgNumUIVstep = NULL;
@@ -211,7 +213,7 @@ void MonitorBuilder()
    fLabel672->SetMargins(0,0,0,0);
    fLabel672->SetWrapLength(-1);
    fVerticalFrame1662->AddFrame(fLabel672, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fLabel672->MoveResize(10,45,62,16);
+   fLabel672->MoveResize(5,45,30,16);
    TGLabel *fLabel673 = new TGLabel(fVerticalFrame1662,"UI Curve");
    fLabel673->SetTextJustify(36);
    fLabel673->SetMargins(0,0,0,0);
@@ -220,9 +222,32 @@ void MonitorBuilder()
    fLabel673->MoveResize(10,67,62,16);
    fgNumVset = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumVset->SetName("fgNumVset");
+   fgNumVset->SetNumber(60.);
    fVerticalFrame1662->AddFrame(fgNumVset, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgNumVset->MoveResize(100,45,64,22);
+   fgNumVset->MoveResize(35,45,64,22);
+
+   TGLabel *fLabelDAC = new TGLabel(fVerticalFrame1662,"DAC");
+   fLabelDAC->SetTextJustify(36);
+   fLabelDAC->SetMargins(0,0,0,0);
+   fLabelDAC->SetWrapLength(-1);
+   fVerticalFrame1662->AddFrame(fLabelDAC, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fLabelDAC->MoveResize(120,47,30,16);
+
+   fgNumDAC = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
+   fgNumDAC->SetName("fgNumDAC");
+   fgNumDAC->SetNumber(0.);
+   fVerticalFrame1662->AddFrame(fgNumDAC, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgNumDAC->MoveResize(160,45,64,22);   
    
+   TGTextButton* fgButtonFEESet = new TGTextButton(fVerticalFrame1662,"SET",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
+   fgButtonFEESet->SetTextJustify(36);
+   fgButtonFEESet->SetMargins(0,0,0,0);
+   fgButtonFEESet->SetWrapLength(-1);
+   fgButtonFEESet->Resize(80,22);
+   fVerticalFrame1662->AddFrame(fgButtonFEESet, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+   fgButtonFEESet->MoveResize(240,45,30,22);
+   fgButtonFEESet->SetCommand("DoFEESet()");
+
    fgNumUIVstart = new TGNumberEntry(fVerticalFrame1662, (Double_t) 0,6,-1,(TGNumberFormat::EStyle) 5);
    fgNumUIVstart->SetName("fgNumUIVstart");
    fVerticalFrame1662->AddFrame(fgNumUIVstart, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
@@ -675,7 +700,16 @@ int TestUICurve()
   }
   return 0;
 }
-
+void DoFEESet()
+{
+  double vset = fgNumVset->GetNumber();
+  if( (vset < 0) || (vset > VSET_MAX)){
+    cout << "[-] ERROR - FEE - Invalid bias voltage" << endl;
+    return;
+  }
+  SetFEE(vset);
+  return;
+}
 char dir[256];
 char cmd[256];
 void DoCheck()

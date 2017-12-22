@@ -5,6 +5,7 @@
 *.pcm
 *cpp~
 ._*
+PlotData.txt
 
 # Compiled Object files
 *.slo

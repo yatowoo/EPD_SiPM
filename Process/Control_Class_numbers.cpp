@@ -67,7 +67,7 @@ void Channel_Control::Write_Channel()
     throw r;
   }
 
-  cout << "Channel: " << Channel << endl;
+  cout << "Channel: " << Channel << endl << endl;
   // cout << Board_Name << endl;
 
   Write_Noise();
@@ -76,7 +76,7 @@ void Channel_Control::Write_Channel()
 
   Write_Signal();
 
-  cout << "Done!" << endl;
+  cout << "Done!" << endl << endl << endl << endl << endl;
 
 
 
@@ -128,7 +128,7 @@ void Channel_Control::Write_Noise()
 
   for(int j = 0; fin . eof() == 0; j++)
   {
-    
+
 
     for(int i = 0; i < 1024; i++)
     {
@@ -152,7 +152,7 @@ void Channel_Control::Write_Noise()
       // wave . Fit(&f1, "NQR", "", 0, 1024);
       // Noise_Slope . Fill(f1 . GetParameter(1));
       // Noise_Ped . Fill(f1 . GetParameter(0));
-    } 
+    }
     Noise_Ped . Fill(wave . Integral() / 1024);
 
 
@@ -183,6 +183,13 @@ void Channel_Control::Write_Noise()
   fin . close();
 
   Is_Noise_Saved = true;
+
+  cout << endl;
+  cout << "DAC = 0 Pedestal standard deviration: " << Noise_Ped . GetStdDev() << endl;
+  if(Noise_Ped . GetStdDev() > 1)
+  {
+    cout << "Warning: DAC = 0 standard deviration is a little large, suggest to check again." << endl;
+  }
 
 
 
@@ -286,8 +293,17 @@ void Channel_Control::Write_DAC()
     DAC_Ped . Write();
     fin . close();
 
+    cout << endl;
+    cout << "DAC = " << to_string(DACs[i]) << " Pedestal standard deviration: " << DAC_Ped . GetStdDev() << endl;
+    if(DAC_Ped . GetStdDev() > 1)
+    {
+      cout << "Warning: pedestal standard deviration is a little large, suggest check again." << endl;
+    }
+
+
 
   }
+
 
 
 
@@ -326,140 +342,140 @@ void Channel_Control::Write_Signal()
 
   TH1F * h = (TH1F *)dir -> Get(to_char(Board_Name . Noise_Slope_Hist_Name(Channel)));
 
-    // Read Signal File
+  double Slope_Mean = h -> GetMean();
+  double Slope_Dev = h -> GetStdDev();
 
-    // vector<Signal_Charge_Hist *> signal_charges;
+  // for(int i = 0; i < Board_Name . Get_Board_Num() - 1; i++)
+  // {
+  //   auto Signal_Charge = new Signal_Charge_Hist(to_char(Board_Name . Signal_Charge_Hist_Name(Channel, i)), to_char(Board_Name . Signal_Charge_Hist_Name(Channel, i)), 1);
+  //   signal_charges . push_back(Signal_Charge);
+  // }
+  // cout << "***********************************************************" << endl;
+
+  for(int k = 0; k < Board_Name . Get_Voltage_Nums() - 1; k++)
+  {
 
 
-
-    // vector<TBranch *> signal_branches;
-
-    double Slope_Mean = h -> GetMean();
-    double Slope_Dev = h -> GetStdDev();
-
-    // for(int i = 0; i < Board_Name . Get_Board_Num() - 1; i++)
-    // {
-    //   auto Signal_Charge = new Signal_Charge_Hist(to_char(Board_Name . Signal_Charge_Hist_Name(Channel, i)), to_char(Board_Name . Signal_Charge_Hist_Name(Channel, i)), 1);
-    //   signal_charges . push_back(Signal_Charge);
-    // }
-    // cout << "***********************************************************" << endl;
-
-    for(int k = 0; k < Board_Name . Get_Voltage_Nums() - 1; k++)
+    fin . open( to_char(Board_Name . Signal_File_Name(Channel, k)));
+    if(fin . is_open() == false)
     {
+      range_error r("hfldks");
+      cout << Board_Name . Signal_File_Name(Channel, k) << endl;
+      cout << Board_Name << endl;
+      throw r;
+    }
+
+    // const char *c_temp = to_char(Board_Name . Signal_Branch_Name(Channel, k) + "[" + to_string(SAVE_BINS) + "]/S");
+
+    // const char *c = (const char *)c_temp;
+    char c[128];
+    int signal_bins = SAVE_BINS;
+    sprintf(c, "f[%d]", signal_bins);
+    float wave_numbers[SAVE_BINS];
+
+    // auto branch = tree . Branch(to_char(Board_Name . Signal_Branch_Name(Channel, k)), wave_numbers, c);
+    auto branch = tree . Branch(to_char(Board_Name . Signal_Branch_Name(Channel, k)), wave_numbers, c);
+    // auto branch = tree . Branch(to_char(Board_Name . Signal_Branch_Name(Channel, k)), "TH1F", &wave);
 
 
-      fin . open( to_char(Board_Name . Signal_File_Name(Channel, k)));
-      if(fin . is_open() == false)
+    // signal_branches . push_back(branch);
+    Signal_Charge_Hist Signal_Charge_temp(to_char(Board_Name . Signal_Charge_Hist_Name(Channel, k)), to_char(Board_Name . Signal_Charge_Hist_Name(Channel, k)), 1);
+
+    TH1F Signal_Charge = Signal_Charge_temp;
+
+
+    Events = 0;
+
+
+
+
+    for(int j = 0; fin . eof() == 0; j++, Events ++)
+    {
+      for(int i = 0; i < 1024; i++)
       {
-        range_error r("hfldks");
-        cout << Board_Name . Signal_File_Name(Channel, k) << endl;
-        cout << Board_Name << endl;
-        throw r;
+        float temp;
+        // fin >> temp;
+        fin . read((char *)&temp, sizeof(temp));
+        wave . SetBinContent(i + 1, temp);
+        if(i >= SAVE_FIRST && i <= SAVE_LAST && i - SAVE_FIRST < SAVE_BINS)
+        {
+          wave_numbers[i - SAVE_FIRST] = temp;
+          // cout << wave_numbers[i] << endl;
+        }
+        // cout << i << "\t";
       }
 
-      // const char *c_temp = to_char(Board_Name . Signal_Branch_Name(Channel, k) + "[" + to_string(SAVE_BINS) + "]/S");
-
-      // const char *c = (const char *)c_temp;
-      char c[128];
-      int signal_bins = SAVE_BINS;
-      sprintf(c, "f[%d]", signal_bins);
-      float wave_numbers[SAVE_BINS];
-
-      // auto branch = tree . Branch(to_char(Board_Name . Signal_Branch_Name(Channel, k)), wave_numbers, c);
-      auto branch = tree . Branch(to_char(Board_Name . Signal_Branch_Name(Channel, k)), wave_numbers, c);
-      // auto branch = tree . Branch(to_char(Board_Name . Signal_Branch_Name(Channel, k)), "TH1F", &wave);
-
-
-      // signal_branches . push_back(branch);
-      Signal_Charge_Hist Signal_Charge_temp(to_char(Board_Name . Signal_Charge_Hist_Name(Channel, k)), to_char(Board_Name . Signal_Charge_Hist_Name(Channel, k)), 1);
-
-      TH1F Signal_Charge = Signal_Charge_temp;
-
-
-      Events = 0;
+      // if(j < 200)
+      // {
+      //   continue;
+      // }
 
 
 
-
-      for(int j = 0; fin . eof() == 0; j++, Events ++)
-      {
-        for(int i = 0; i < 1024; i++)
-        {
-          float temp;
-          // fin >> temp;
-          fin . read((char *)&temp, sizeof(temp));
-          wave . SetBinContent(i + 1, temp);
-          if(i >= SAVE_FIRST && i <= SAVE_LAST && i - SAVE_FIRST < SAVE_BINS)
-          {
-            wave_numbers[i - SAVE_FIRST] = temp;
-            // cout << wave_numbers[i] << endl;
-          }
-          // cout << i << "\t";
-        }
-
-        // if(j < 200)
-        // {
-        //   continue;
-        // }
-
-
-
-        // TF1 f2("tempf", "[0]+[1]*x", 0, 1024);
-        //
-        // wave . Fit(&f2, "N", "", 0, 600);
-        //
-        // if(abs(f2 . GetParameter(1) - Slope_Mean) > Slope_Dev)
-        // {
-        //   continue;
-        // }
-
-        // wave . Add(&f2, -1);
-        double inter = wave . Integral(SIGNAL_START, SIGNAL_END);
-        double low = wave . Integral(SAVE_FIRST, SIGNAL_START - SAMPLE_GAP);
-        double high = wave . Integral(SIGNAL_END + SAMPLE_GAP, SAVE_LAST);
-        // cout << to_char(Board_Name . Signal_File_Name(Channel, k));
-        // cout << "***********************************************************" << endl;
-
-
-        // signal_charges[k] -> Fill(inter * Charge_Coefficience);
-        Signal_Charge . Fill(inter - (low + high) / 2);
-
-
-        {
-          branch -> Fill();
-
-        }
-
-
-
-      }
-
-      // TF1 f("Gausf", "gaus(0)+gaus(3)+gaus(6)+gaus(9)", -1, 1);
-      // Signal_Charge[k] . Fit(&f, "", "", -1, 1);// Lots of problems here!!!
+      // TF1 f2("tempf", "[0]+[1]*x", 0, 1024);
       //
+      // wave . Fit(&f2, "N", "", 0, 600);
+      //
+      // if(abs(f2 . GetParameter(1) - Slope_Mean) > Slope_Dev)
+      // {
+      //   continue;
+      // }
+
+      // wave . Add(&f2, -1);
+      double inter = wave . Integral(SIGNAL_START, SIGNAL_END);
+      double low = wave . Integral(SAVE_FIRST, SIGNAL_START - SAMPLE_GAP);
+      double high = wave . Integral(SIGNAL_END + SAMPLE_GAP, SAVE_LAST);
+      // cout << to_char(Board_Name . Signal_File_Name(Channel, k));
+      // cout << "***********************************************************" << endl;
 
 
+      // signal_charges[k] -> Fill(inter * Charge_Coefficience);
+      Signal_Charge . Fill(inter - (low + high) / 2);
 
-      v_Events . push_back(Events);
 
-      fin . close();
+      {
+        branch -> Fill();
 
-      Signal_Charge . Write();
+      }
+
 
 
     }
 
+    // TF1 f("Gausf", "gaus(0)+gaus(3)+gaus(6)+gaus(9)", -1, 1);
+    // Signal_Charge[k] . Fit(&f, "", "", -1, 1);// Lots of problems here!!!
+    //
 
-    auto branch_events = tree . Branch("Events", &Events, "Events/I");
-    for(int i = 0; i < v_Events . size(); i++)
+
+
+    v_Events . push_back(Events);
+
+    fin . close();
+
+    Signal_Charge . Write();
+
+
+    cout << endl;
+    cout << "Signal: U = " << 60 << "V " << "Mean: " << Signal_Charge . GetMean() << endl;
+    if(Signal_Charge . GetMean() > -100)
     {
-      Events = v_Events[i];
-      branch_events -> Fill();
+      cout << "Warning: Signal Mean is a little small, please check again." << endl;
     }
-    // branch_events . Write();
-    // tree . Write();
 
-    Is_Charge_Saved = true;
+
+  }
+
+
+  auto branch_events = tree . Branch("Events", &Events, "Events/I");
+  for(int i = 0; i < v_Events . size(); i++)
+  {
+    Events = v_Events[i];
+    branch_events -> Fill();
+  }
+  // branch_events . Write();
+  // tree . Write();
+
+  Is_Charge_Saved = true;
 
 
 }
@@ -526,7 +542,7 @@ public:
 
     f =  new TFile(to_char(Board_Basic_Status . Root_File_Name()), "recreate");
     Is_Done = false;
-  
+
 
   }
 
