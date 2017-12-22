@@ -162,7 +162,7 @@ class Noise_Ped_Hist : public TH1F
 public:
   Noise_Ped_Hist() = default;
   Noise_Ped_Hist(string name, string title):
-  TH1F(to_char(name), to_char(title), 10000, 2050, 2600)
+  TH1F(to_char(name), to_char(title), 10000, 1900, 2750)
   {}
 };
 

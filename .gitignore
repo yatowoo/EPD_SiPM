@@ -3,6 +3,8 @@
 *test*
 *.d
 *.pcm
+*cpp~
+._*
 
 # Compiled Object files
 *.slo

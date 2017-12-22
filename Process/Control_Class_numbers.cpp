@@ -121,8 +121,8 @@ void Channel_Control::Write_Noise()
   fin . open( to_char(Board_Name . Noise_File_Name(Channel)));
   if(fin . is_open() == false)
   {
-	range_error r("File Didn't open");
-	throw r;
+    range_error r("File Didn't open");
+    throw r;
   }
 
 
@@ -145,13 +145,14 @@ void Channel_Control::Write_Noise()
     //   continue;
     // }
 
-    TF1 f1("tempf", "[0]+[1]*x", 0, 1024);
 
 
-
-    // wave . Fit(&f1, "NQR", "", 0, 1024);
-    // Noise_Slope . Fill(f1 . GetParameter(1));
-    // Noise_Ped . Fill(f1 . GetParameter(0));
+    {
+      // TF1 f1("tempf", "[0]+[1]*x", 0, 1024);
+      // wave . Fit(&f1, "NQR", "", 0, 1024);
+      // Noise_Slope . Fill(f1 . GetParameter(1));
+      // Noise_Ped . Fill(f1 . GetParameter(0));
+    } 
     Noise_Ped . Fill(wave . Integral() / 1024);
 
 
@@ -175,6 +176,7 @@ void Channel_Control::Write_Noise()
   //Save Noise File
   Noise_Slope . Write();
   Noise_Ped . Write();
+  //gPad->SetLogy();
   Noise_FFT . Write();
 
 
@@ -254,6 +256,8 @@ void Channel_Control::Write_DAC()
           // wave.Fit(&f, "NQR", "", 0, 1024);
           // DAC_Ped . Fill(f . GetParameter(0));
         }
+        DAC_Ped . Fill(wave . Integral() / 1024);
+
 
       // if(f.GetParameter(1) < 1e-7)
       // {
@@ -266,7 +270,6 @@ void Channel_Control::Write_DAC()
 
 
 
-      DAC_Ped . Fill(wave . Integral() / 1024);
       // cout << wave.GetMean(2) << endl;
       // auto h = new TH1F(wave);cout << h << endl;
       // throw 1;
@@ -642,10 +645,12 @@ public:
     return true;
   }
 
+    TFile *f = NULL;
+
+
 private:
 
   Board_All_Name Board_Basic_Status;
-  TFile *f = NULL;
   bool Is_Done = false;
 };
 

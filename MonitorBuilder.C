@@ -694,8 +694,10 @@ void DoCheck()
 #include "Process/Control_Class_numbers.cpp"
 void DoStart()
 {
-  if(strlen(dir) == 0)
+  if(strlen(dir) == 0){
     cout << "[-] ERROR - Please 'Check' first" << endl;
+    return;
+  }
   char path[256];
   const char* cmd_head = "mkdir -p ";
   int dac[3] = {-127,127,0};
