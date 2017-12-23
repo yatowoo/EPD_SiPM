@@ -377,35 +377,15 @@ void MonitorBuilder()
    fVerticalFrame1410->AddFrame(fgButtonUI, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fgButtonUI->MoveResize(4,27,80,22);
    fgButtonUI->SetCommand("TestUICurve()");
-
-   fgButtonProduce = new TGTextButton(fVerticalFrame1410,"Produce",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fgButtonProduce->SetTextJustify(36);
-   fgButtonProduce->SetMargins(0,0,0,0);
-   fgButtonProduce->SetWrapLength(-1);
-   fgButtonProduce->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fgButtonProduce, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgButtonProduce->MoveResize(101,27,80,22);
-   fgButtonSlope = new TGTextButton(fVerticalFrame1410,"Noise Slope",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fgButtonSlope->SetTextJustify(36);
-   fgButtonSlope->SetMargins(0,0,0,0);
-   fgButtonSlope->SetWrapLength(-1);
-   fgButtonSlope->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fgButtonSlope, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgButtonSlope->MoveResize(200,27,80,22);
-   fgButtonGain = new TGTextButton(fVerticalFrame1410,"Signal Gain",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
-   fgButtonGain->SetTextJustify(36);
-   fgButtonGain->SetMargins(0,0,0,0);
-   fgButtonGain->SetWrapLength(-1);
-   fgButtonGain->Resize(80,22);
-   fVerticalFrame1410->AddFrame(fgButtonGain, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgButtonGain->MoveResize(4,51,80,22);
+   
    fgButtonVb = new TGTextButton(fVerticalFrame1410,"V Breakdown",-1,TGTextButton::GetDefaultGC()(),TGTextButton::GetDefaultFontStruct(),kRaisedFrame);
    fgButtonVb->SetTextJustify(36);
    fgButtonVb->SetMargins(0,0,0,0);
    fgButtonVb->SetWrapLength(-1);
    fgButtonVb->Resize(80,22);
    fVerticalFrame1410->AddFrame(fgButtonVb, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
-   fgButtonVb->MoveResize(101,51,80,22);
+   fgButtonVb->MoveResize(101,27,80,22);
+   fgButtonVb->SetCommand("DoProcessUICurve()");
 
    fgMainFrame->AddFrame(fVerticalFrame1410, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
    fVerticalFrame1410->MoveResize(1,276,320,80);
@@ -781,6 +761,50 @@ void DoSave()
     mg->SaveAs(path);
   else
     cout << "[X] WARNNING - No data." << endl;
+}
+// @see script/DrawUICurve.C
+int DoProcessUICurve(){
+  cout << "[-] Analyzer - Process UI curve - START " << endl;
+
+  if(!mg){
+    string fileName = string(dir) + string("/UICurve.root");
+    TFile* file = new TFile(fileName.c_str());
+    if(file->IsOpen())
+      mg = (TMultiGraph*)(file->Get("ui"));
+  }
+  if(!mg){
+    cout << "[-] ERROR - Analyzer - UI curve dosen't exist. " << endl;
+    return -1;
+  }
+  mg->Draw("ALP");
+
+  TLegend* lgd = new TLegend(0.16,0.45,0.53,0.84);
+  lgd->SetNColumns(2);
+  lgd->SetName("lgd");
+  lgd->SetShadowColor(kWhite);
+  const char* label_prefix = "CH_";
+
+  TList* grs = (TList*)(mg->GetListOfGraphs());
+  for(int i = 0 ; i < grs->GetSize(); i++){
+    TGraph* gr = (TGraph*)(grs->At(i));
+    gr->SetLineColor(kOrange + i * 5);
+    string label = label_prefix + to_string(i);
+    gr->SetName(label.c_str());
+    
+    string fcnName = "fit" + to_string(i);
+    const char* formula = "pol1";
+    TF1* fcn = new TF1(fcnName.c_str(), formula, 53., 63.);
+    gr->Fit(fcnName.c_str(),"Q","",59,63);
+    fcn->SetRange(53.,63.);
+    fcn->Draw("same");
+    cout << "\t[-] Analyzer - Vbr~" << setprecision(1) << fixed << fcn->GetX(0.) << "V - fit with " << formula << endl;
+
+    lgd->AddEntry(gr,label.c_str());
+  }
+  lgd->Draw("same");
+  cout << "[-] Analyzer - Process UI curve - OVER" << endl;
+  
+  return 0;  
 }
 
 int main(int argc, char* argv[])
