@@ -153,7 +153,7 @@ void Channel_Control::Write_Noise()
       // Noise_Slope . Fill(f1 . GetParameter(1));
       // Noise_Ped . Fill(f1 . GetParameter(0));
     }
-    Noise_Ped . Fill(wave . Integral() / 1024);
+    Noise_Ped . Fill(wave . Integral(0, 900) / 900);
 
 
     Noise_FFT_Hist fft_temp("fft_temp", "fft_temp");
@@ -263,7 +263,7 @@ void Channel_Control::Write_DAC()
           // wave.Fit(&f, "NQR", "", 0, 1024);
           // DAC_Ped . Fill(f . GetParameter(0));
         }
-        DAC_Ped . Fill(wave . Integral() / 1024);
+        DAC_Ped . Fill(wave . Integral(0, 900) / 900);
 
 
       // if(f.GetParameter(1) < 1e-7)
