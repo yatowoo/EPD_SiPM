@@ -633,6 +633,7 @@ bool CheckUICurveParams(double _vStart, double _vStop, double _vStep)
 #include "TMultiGraph.h"
 #include "TGraph.h"
 TMultiGraph* mg = NULL;
+TLegend* lgd = NULL;
 int TestUICurve()
 {
   double _vStart = fgNumUIVstart->GetNumber();
@@ -680,18 +681,29 @@ int TestUICurve()
   }
   return 0;
 }
+bool CheckVset(double vset){
+  return ((vset < 0) || (vset > VSET_MAX));
+}
+bool CheckDAC(int dac){
+  return ((dac < -127) || (dac > 127));
+}
 void DoFEESet()
 {
   double vset = fgNumVset->GetNumber();
-  if( (vset < 0) || (vset > VSET_MAX)){
+  double dac = fgNumDAC->GetNumber();
+  if( CheckVset(vset) || CheckDAC(dac)){
     cout << "[-] ERROR - FEE - Invalid bias voltage" << endl;
     return;
   }
-  SetFEE(vset);
+  SetFEE(vset,0.054,dac);
   return;
 }
 char dir[256];
 char cmd[256];
+void SetCurrentPath()
+{
+  sprintf(dir,"%s/B%d",fgTextPath->GetText(),int(fgNumTestID->GetNumber())); 
+}
 void DoCheck()
 {
   char FEENo[256];
@@ -700,7 +712,7 @@ void DoCheck()
 
   fgTextDGTZInfo->SetText(CheckDGTZ());
 
-  sprintf(dir,"%s/B%d",fgTextPath->GetText(),int(fgNumTestID->GetNumber()));
+  SetCurrentPath();
   sprintf(cmd,"mkdir -p %s",dir);
   cout << "[-] EXEC - " << cmd << endl;
   gSystem->Exec(cmd);
@@ -756,7 +768,9 @@ void DoStart()
 void DoSave()
 {
   char path[256];
-  sprintf(path,"%s/B%d/%s",fgTextPath->GetText(),int(fgNumTestID->GetNumber()),"UICurve.root");
+  if(strlen(dir) == 0)
+    SetCurrentPath();
+  sprintf(path,"%s/%s",dir,"UICurve.root");
   if(mg)
     mg->SaveAs(path);
   else
@@ -767,6 +781,8 @@ int DoProcessUICurve(){
   cout << "[-] Analyzer - Process UI curve - START " << endl;
 
   if(!mg){
+    if(strlen(dir) == 0)
+      SetCurrentPath();
     string fileName = string(dir) + string("/UICurve.root");
     TFile* file = new TFile(fileName.c_str());
     if(file->IsOpen())
@@ -778,13 +794,16 @@ int DoProcessUICurve(){
   }
   mg->Draw("ALP");
 
-  TLegend* lgd = new TLegend(0.16,0.45,0.53,0.84);
+  if(lgd)
+    lgd->Delete();
+  lgd = new TLegend(0.16,0.45,0.53,0.84);
   lgd->SetNColumns(2);
   lgd->SetName("lgd");
   lgd->SetShadowColor(kWhite);
   const char* label_prefix = "CH_";
 
   TList* grs = (TList*)(mg->GetListOfGraphs());
+  const char* formula = "pol1";
   for(int i = 0 ; i < grs->GetSize(); i++){
     TGraph* gr = (TGraph*)(grs->At(i));
     gr->SetLineColor(kOrange + i * 5);
@@ -792,7 +811,6 @@ int DoProcessUICurve(){
     gr->SetName(label.c_str());
     
     string fcnName = "fit" + to_string(i);
-    const char* formula = "pol1";
     TF1* fcn = new TF1(fcnName.c_str(), formula, 53., 63.);
     gr->Fit(fcnName.c_str(),"Q","",59,63);
     fcn->SetRange(53.,63.);
