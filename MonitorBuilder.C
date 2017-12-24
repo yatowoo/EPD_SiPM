@@ -776,7 +776,7 @@ void DoSave()
   else
     cout << "[X] WARNNING - No data." << endl;
 }
-// @see script/DrawUICurve.C
+#include "Script/UICurve.C"
 int DoProcessUICurve(){
   cout << "[-] Analyzer - Process UI curve - START " << endl;
 
@@ -792,34 +792,9 @@ int DoProcessUICurve(){
     cout << "[-] ERROR - Analyzer - UI curve dosen't exist. " << endl;
     return -1;
   }
-  mg->Draw("ALP");
-
-  if(lgd)
-    lgd->Delete();
-  lgd = new TLegend(0.16,0.45,0.53,0.84);
-  lgd->SetNColumns(2);
-  lgd->SetName("lgd");
-  lgd->SetShadowColor(kWhite);
-  const char* label_prefix = "CH_";
-
-  TList* grs = (TList*)(mg->GetListOfGraphs());
-  const char* formula = "pol1";
-  for(int i = 0 ; i < grs->GetSize(); i++){
-    TGraph* gr = (TGraph*)(grs->At(i));
-    gr->SetLineColor(kOrange + i * 5);
-    string label = label_prefix + to_string(i);
-    gr->SetName(label.c_str());
-    
-    string fcnName = "fit" + to_string(i);
-    TF1* fcn = new TF1(fcnName.c_str(), formula, 53., 63.);
-    gr->Fit(fcnName.c_str(),"Q","",59,63);
-    fcn->SetRange(53.,63.);
-    fcn->Draw("same");
-    cout << "\t[-] Analyzer - Vbr~" << setprecision(1) << fixed << fcn->GetX(0.) << "V - fit with " << formula << endl;
-
-    lgd->AddEntry(gr,label.c_str());
+  if(!DrawUICurve(mg)){
+    return -1;
   }
-  lgd->Draw("same");
   cout << "[-] Analyzer - Process UI curve - OVER" << endl;
   
   return 0;  
